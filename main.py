@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 from groq import Groq
 from googlesearch import search
@@ -52,10 +53,32 @@ def build_prompt(prompt_info):
                              question=prompt_info["prompt"])
     return prompt
 
+def gather_resources(filename):
+    """Function that will be used to search the web for resources"""
+    #read the file into a string
+    with open(filename, 'r') as file:
+        output = file.read().replace("\n", "")
+    #use regex to get queries
+    queries = re.findall(r"{(.*?)}", output)
+    #save queries in a dictionary
+    query_dic = {
+        "query": [],
+        "description": []
+    }
+    #get the query from each step
+    for line in queries[:5]:
+        #break down the line into query components
+        line_breakdown = re.findall(r'"(.*?)"', line)
+        #input query into dictionary
+        query_dic["query"].append(line_breakdown[1])
+        #input description into dictionary
+        query_dic["description"].append(line_breakdown[3])
+    # TODO add search functionality and return resources
+    return ...
 
 if __name__ == "__main__":
     #if we are testing using student input or using pre existing test
-    student_input = True
+    student_input = False
     if student_input:
         #brief questionnare for the student
         question = input("What is your question today? ")
@@ -79,6 +102,6 @@ if __name__ == "__main__":
         response = invoke_groq(prompt)
         #write our response to a file
         unique_id = uuid.uuid4().hex
-        filename = f"output/ouput_{unique_id[:5]}"
+        filename = f"output/output_{unique_id[:5]}.txt"
         with open(filename, 'w') as f:
             f.write(response)
