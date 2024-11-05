@@ -1,3 +1,4 @@
 LLM-integration/
 .env
 notebooks/
+output/
