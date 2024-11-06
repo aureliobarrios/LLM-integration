@@ -1,6 +1,7 @@
 import os
 import re
 import uuid
+import json
 from groq import Groq
 from googlesearch import search
 from langchain.prompts import ChatPromptTemplate
@@ -128,3 +129,14 @@ if __name__ == "__main__":
         filename = f"output/output_{unique_id[:5]}.txt"
         with open(filename, 'w') as f:
             f.write(response)
+    #get search results for a test file
+    if filename:
+        #gather resources into dictionary
+        resources = gather_resources(filename)
+    else:
+        filename = input("Enter the filename: ")
+        resources = gather_resources(filename)
+    #write out resources onto file
+    out_filename = "output/results_" + str(filename[::-1][4:9][::-1]) + ".json"
+    with open(out_filename, "w") as outfile:
+        json.dump(resources, outfile)
