@@ -102,7 +102,8 @@ def gather_resources(filename):
 
 if __name__ == "__main__":
     #if we are testing using student input or using pre existing test
-    student_input = False
+    student_input = True
+    filename = ""
     if student_input:
         #brief questionnare for the student
         question = input("What is your question today? ")
