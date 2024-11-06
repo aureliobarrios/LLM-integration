@@ -2,6 +2,7 @@ import os
 import re
 import uuid
 import json
+import argparse
 from groq import Groq
 from googlesearch import search
 from langchain.prompts import ChatPromptTemplate
@@ -100,10 +101,8 @@ def gather_resources(filename):
         step_index += 1
     return web_search
 
-if __name__ == "__main__":
-    #if we are testing using student input or using pre existing test
-    student_input = True
-    filename = ""
+def chatbot_v1(student_input, filename):
+    """Initial iteration of the chatbot interface to test"""
     if student_input:
         #brief questionnare for the student
         question = input("What is your question today? ")
@@ -141,3 +140,22 @@ if __name__ == "__main__":
     out_filename = "output/results_" + str(filename[::-1][4:9][::-1]) + ".json"
     with open(out_filename, "w") as outfile:
         json.dump(resources, outfile)
+
+
+if __name__ == "__main__":
+    #create an argument parser
+    parser = argparse.ArgumentParser(description="Chatbot Selection")
+    parser.add_argument("--input", dest='input', action='store_true')
+    parser.add_argument("--no-input", dest="input", action='store_false')
+    parser.set_defaults(input=False)
+    parser.add_argument("--filename", default="")
+    parser.add_argument("--version", default="test")
+    #access our arguments
+    args = parser.parse_args()
+
+    print("Input:", args.input)
+
+    if args.version == "v1":
+        chatbot_v1(args.input, args.filename)
+    else:
+        print("No other version so far")
