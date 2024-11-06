@@ -73,8 +73,31 @@ def gather_resources(filename):
         query_dic["query"].append(line_breakdown[1])
         #input description into dictionary
         query_dic["description"].append(line_breakdown[3])
-    # TODO add search functionality and return resources
-    return ...
+    #dictionary to store our web search results
+    web_search = {}
+    #query the web
+    step_index = 0
+    for search_query in query_dic["query"]:
+        #get the results of the search query
+        results = search(search_query, advanced=True, num_results=5)
+        #save current step
+        web_search["step_" + str(step_index+1)] = {
+            "query": search_query,
+            "description": query_dic["description"][step_index],
+            "results": {}
+        }
+        #save results
+        result_index = 1
+        for search_result in results:
+            #store web search results into the dictionary to return
+            web_search["step_" + str(step_index+1)]["results"]["search_" + str(result_index)] = {
+                "title": search_result.title,
+                "url": search_result.url,
+                "description": search_result.description
+            }
+            result_index += 1
+        step_index += 1
+    return web_search
 
 if __name__ == "__main__":
     #if we are testing using student input or using pre existing test
