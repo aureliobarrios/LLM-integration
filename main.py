@@ -7,6 +7,11 @@ from groq import Groq
 from googlesearch import search
 from langchain.prompts import ChatPromptTemplate
 
+from llama_index.core.agent import ReActAgent
+from llama_index.llms.openai import OpenAI
+from llama_index.core.llms import ChatMessage
+from llama_index.core.tools import BaseTool, FunctionTool
+
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 PROMPT_TEMPLATE = """
