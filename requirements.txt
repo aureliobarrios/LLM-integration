@@ -50,6 +50,7 @@ llama-index-core==0.11.22
 llama-index-embeddings-openai==0.2.5
 llama-index-indices-managed-llama-cloud==0.4.0
 llama-index-legacy==0.9.48.post4
+llama-index-llms-ollama==0.3.6
 llama-index-llms-openai==0.2.16
 llama-index-multi-modal-llms-openai==0.2.3
 llama-index-program-openai==0.2.0
@@ -65,6 +66,7 @@ nest-asyncio==1.6.0
 networkx==3.4.2
 nltk==3.9.1
 numpy==1.26.4
+ollama==0.3.3
 openai==1.54.3
 orjson==3.10.11
 packaging==24.1
