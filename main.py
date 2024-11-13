@@ -7,10 +7,13 @@ from groq import Groq
 from googlesearch import search
 from langchain.prompts import ChatPromptTemplate
 
-from llama_index.core.agent import ReActAgent
-from llama_index.llms.openai import OpenAI
-from llama_index.core.llms import ChatMessage
-from llama_index.core.tools import BaseTool, FunctionTool
+# from llama_index.core.agent import ReActAgent
+# from llama_index.llms.openai import OpenAI
+# from llama_index.core.llms import ChatMessage
+# from llama_index.core.tools import BaseTool, FunctionTool
+
+from dotenv import load_dotenv
+load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
@@ -143,6 +146,8 @@ def chatbot_v1(student_input, filename):
         resources = gather_resources(filename)
     #write out resources onto file
     out_filename = "output/results_" + str(filename[::-1][4:9][::-1]) + ".json"
+    #print name for tracking
+    print(f"Your resources were saved in the -- {out_filename} -- file!")
     with open(out_filename, "w") as outfile:
         json.dump(resources, outfile)
 
@@ -158,9 +163,9 @@ if __name__ == "__main__":
     #access our arguments
     args = parser.parse_args()
 
-    print("Input:", args.input)
-
     if args.version == "v1":
         chatbot_v1(args.input, args.filename)
     else:
         print("No other version so far")
+
+    # command: python main.py --input --version v1
