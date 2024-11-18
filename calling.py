@@ -13,6 +13,15 @@ client = Groq(
     api_key=GROQ_API_KEY
 )
 
+def get_query(prompt):
+    #call on gpt to get query
+    query = ...
+    query_info = {
+        "difficulty": "easy",
+        "query": query
+    }
+    return ...
+
 #include the function
 def get_flight_info(loc_origin, loc_destination):
     #get the flight information between two locations
