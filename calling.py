@@ -24,6 +24,7 @@ def get_query(prompt):
 
 #include the function
 def get_flight_info(loc_origin, loc_destination):
+    print("Function was called")
     #get the flight information between two locations
     flight_info = {
         "loc_origin": loc_origin,

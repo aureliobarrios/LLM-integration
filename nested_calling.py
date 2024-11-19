@@ -28,6 +28,7 @@ This is the body of text to extract the information from:
 def extract_student_info(name, major, school, grades, club):
     
     """Get the student information"""
+    print("Function was called")
 
     return f"{name} is majoring in {major} at {school}. He has {grades} GPA and he is an active member of the university's {club}."
 
