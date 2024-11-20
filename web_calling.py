@@ -1,6 +1,7 @@
 import os
 import json
 from groq import Groq
+from googlesearch import search
 from dotenv import load_dotenv
 
 #load environment variables and build client
@@ -12,7 +13,7 @@ client = Groq(
 )
 
 #load in text from file
-filename = "files/learning_path_text_1.txt"
+filename = "files/" + input("Insert learning path filename")
 
 with open(filename, "r") as file:
     learning_path_text = file.read()
@@ -125,3 +126,59 @@ response = client.chat.completions.create(
     tools = tools,
     tool_choice = "auto"
 )
+
+#get response tokens usage
+tokens = response.usage.total_tokens
+
+#get the content of our response
+content = response.choices[0].message.content
+
+#save the content of our response message
+content_filename = "trials/" + input("Name of file to save response content")
+
+with open(content_filename, "w") as file:
+    file.write(content)
+
+#TODO: edge case where we dont have JSON content in text
+
+#get starting index of JSON object
+start_index = content.find("{")
+#get ending index of JSON object
+end_index = len(content) - content[::-1].find("}")
+#get the entire JSON text
+json_text = content[start_index:end_index]
+
+try:
+    #load text to json
+    json_response = json.loads(json_text)
+except Exception as e:
+    if e.args[0].startswith("Expecting ',' delimiter:"):
+        try:
+            #load text to json
+            json_response = json.loads(json_text[0:e.pos-1] + "}" + json_text[e.pos:])
+        except Exception as e:
+            print("Failure! Could not load your file to JSON with error", e)
+    else:
+        print("Failure!! Could not load your file to JSON with error", e)
+try:
+    #get the current keys of json file
+    curr_keys = json_response.keys()
+    if "tool_calls" in curr_keys:
+        out_json = extract_learning_info(**json_response["tool_calls"][0]["parameters"])
+        print(f"Success! Succesfully load JSON using tool_calls")
+    elif "parameters" in curr_keys:
+        out_json = extract_learning_info(**json_response["parameters"])
+        print(f"Success! Succesfully load JSON using parameters")
+    elif "hard_query" in curr_keys:
+        out_json = extract_learning_info(**json_response)
+        print(f"Success! Succesfully load JSON using arguments")
+    else:
+        print(f"Failure! Could not process JSON keys")
+except Exception as e:
+    print(f"Failure! Could not process JSON keys with error", e)
+
+if out_json:
+    json_filename = "trials/" + input("Name your output JSON filename")
+
+    with open(json_filename, "w") as file:
+        json.dump(out_json, file)
