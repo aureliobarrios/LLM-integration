@@ -12,8 +12,10 @@ client = Groq(
     api_key=GROQ_API_KEY
 )
 
+trial_name = input("Insert current trial name: ")
+
 #load in text from file
-filename = "files/" + input("Insert learning path filename")
+filename = f"trials/{trial_name}.txt"
 
 with open(filename, "r") as file:
     learning_path_text = file.read()
@@ -58,7 +60,7 @@ def extract_learning_info(beginner_description, beginner_query,
             "query": advanced_query
         }
     }
-    return json.dumps(learning_info)
+    return learning_info
 
 #build tool configuration
 tools  = [
@@ -130,11 +132,13 @@ response = client.chat.completions.create(
 #get response tokens usage
 tokens = response.usage.total_tokens
 
+print("Total Tokens:", tokens)
+
 #get the content of our response
 content = response.choices[0].message.content
 
 #save the content of our response message
-content_filename = "trials/" + input("Name of file to save response content")
+content_filename = f"trials/content_{trial_name}.txt"
 
 with open(content_filename, "w") as file:
     file.write(content)
@@ -178,7 +182,7 @@ except Exception as e:
     print(f"Failure! Could not process JSON keys with error", e)
 
 if out_json:
-    json_filename = "trials/" + input("Name your output JSON filename")
+    json_filename = f"trials/queries_{trial_name}.json"
 
     with open(json_filename, "w") as file:
         json.dump(out_json, file)
