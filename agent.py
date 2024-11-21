@@ -10,6 +10,9 @@ def jina_agent(url):
     response = requests.get("https://r.jina.ai/" + url)
     return response
 
-if __name__ == "__main__":
-    url = input("Enter url")
-    response = jina_agent(url)
+trial_name = input("Trial Name: ")
+
+filename = f"./trials/{trial_name}.txt"
+
+with open(filename, "w+") as file:
+    file.write("Hello World")
