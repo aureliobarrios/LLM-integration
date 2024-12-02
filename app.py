@@ -1,5 +1,6 @@
 import os
 import json
+import uuid
 import gradio as gr
 from groq import Groq
 from googlesearch import search
@@ -53,6 +54,9 @@ client = Groq(
     api_key=GROQ_API_KEY
 )
 
+#trial name to save test
+trial_name = uuid.uuid4().hex[:5]
+
 with gr.Blocks() as demo:
     # ---------- Components ----------
 
@@ -90,6 +94,44 @@ with gr.Blocks() as demo:
     
     #function to return bot output
     def bot(history, radio):
+        #get previous user message
+        student_prompt = history[-1]["content"]
+        #get user resource selection
+        selection = radio
+        # TODO : include implementation for radio resource selection
+        #build prompt that will return context for learning path
+        context_prompt = f'''
+        {student_prompt}
+
+        Can you build me a learning path to solve this problem that follows these 
+        levels: beginner, intermediate, hard, advanced.
+
+        For each of these levels give me a one sentence query that I can input into
+        my search engine that will return resources that will help me solve my problem.
+
+        Make sure to also include a one sentence description of what the current
+        difficulty level is teaching me.
+        '''
+        #build context for learning path
+        chat_completion = client.chat.completions.create(
+            messages = [
+                {
+                    "role": "user",
+                    "content": context_prompt
+                }
+            ],
+            model = "llama3-8b-8192"
+        )
+        #update tokens used
+        INPUT_TOKENS = INPUT_TOKENS + chat_completion.usage.prompt_tokens
+        OUTPUT_TOKENS = OUTPUT_TOKENS + chat_completion.usage.completion_tokens
+        #get learning path context
+        learning_path_text = chat_completion.choices[0].message.content
+
+        
+        
+        
+        
         bot_message = "You typed: " + history[-1]["content"] +  ", and selected: " + radio
 
         #include link
@@ -109,6 +151,10 @@ with gr.Blocks() as demo:
         history.append({"role": "assistant", "content": message})
         return history
     
+    def info_fn():
+        display_message = f"File saved to: {trial_name}"
+        gr.Info(display_message, duration=3)
+    
     # ---------- Actions ----------
 
     #handle user submit
@@ -116,6 +162,8 @@ with gr.Blocks() as demo:
         user, [msg, chatbot], [msg, chatbot], queue=False
     ).then(
         bot, [chatbot, radio], chatbot
+    ).then(
+        info_fn, None, None
     )
 
     #handle user click on clear button
@@ -132,7 +180,9 @@ with gr.Blocks() as demo:
         bot, [chatbot, radio], chatbot
     ).then(
         learning, chatbot, output
+    ).then(
+        info_fn, None, None
     )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(show_error=True)

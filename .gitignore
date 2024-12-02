@@ -1,8 +1,10 @@
+gradio-tests/
+__pycache__/
+files/
+gradio-tests/
+legacy/
 LLM-integration/
-.env
 notebooks/
 output/
-files/
 trials/
-legacy/
-__pycache__/
+.env
