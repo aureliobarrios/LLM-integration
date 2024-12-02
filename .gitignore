@@ -5,3 +5,4 @@ output/
 files/
 trials/
 legacy/
+__pycache__/
