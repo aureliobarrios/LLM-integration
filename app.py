@@ -60,15 +60,12 @@ with gr.Blocks() as demo:
         {"role": "assistant", "content": message}
     ], type="messages")
     #build textbot for message input
-    msg = gr.Textbox(placeholder="Insert question here")
+    msg = gr.Textbox(placeholder="Insert your question here")
 
     #build button row section
     with gr.Row():
         clear_button = gr.Button("Clear")
         submit_button = gr.Button("Build Path")
-
-    #create output textbox
-    output = gr.Textbox(label="Learning Path")
 
     # ---------- Functions ----------
 
@@ -379,10 +376,6 @@ with gr.Blocks() as demo:
         INPUT_TOKENS, OUTPUT_TOKENS = 0, 0
         return history
     
-    #function to return to output text
-    def learning(history):
-        return "Built learning path for: " + history[-1]["content"]
-    
     def clear_handle(history):
         #clear chatbot history
         history = []
@@ -424,8 +417,6 @@ with gr.Blocks() as demo:
     #handle user click on clear button
     clear_button.click(
         clear_handle, chatbot, chatbot, queue=False
-    ).then(
-        lambda: None, None, output
     )
 
     #handle user click on submit button
@@ -433,8 +424,6 @@ with gr.Blocks() as demo:
         user, [msg, chatbot], [msg, chatbot], queue=False
     ).then(
         bot, [chatbot, radio], chatbot
-    ).then(
-        learning, chatbot, output
     ).then(
         learning_path_info, None, None
     ).then(
