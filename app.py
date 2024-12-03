@@ -377,17 +377,17 @@ with gr.Blocks() as demo:
     def learning_path_info():
         trial_name = os.environ["TRIAL"]
         display_message = f"Learning Path Context Saved To: ./gradio-tests/{trial_name}.txt"
-        gr.Info(display_message, duration=3)
+        gr.Info(display_message, duration=5)
 
     def extracted_content_info():
         trial_name = os.environ["TRIAL"]
         display_message = f"Extracted Content Saved To: ./gradio-tests/content_{trial_name}.txt"
-        gr.Info(display_message, duration=3)
+        gr.Info(display_message, duration=5)
 
     def query_info():
         trial_name = os.environ["TRIAL"]
         display_message = f"Query Information Saved To: ./gradio-tests/queries_{trial_name}.txt"
-        gr.Info(display_message, duration=3)
+        gr.Info(display_message, duration=5)
     
     # ---------- Actions ----------
 
