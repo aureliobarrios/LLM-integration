@@ -6,10 +6,7 @@ from groq import Groq
 from googlesearch import search
 from dotenv import load_dotenv
 
-with gr.Blocks() as demo:
-    #trial name to save test
-    trial_name = uuid.uuid4().hex[:5]
-    
+with gr.Blocks() as demo:    
     # -------------------- Helper Functions --------------------
 
     #function to calculate price
@@ -81,6 +78,9 @@ with gr.Blocks() as demo:
     
     #function to return bot output
     def bot(history, radio):
+        #trial name to save test
+        os.environ["TRIAL"] = uuid.uuid4().hex[:5]
+        trial_name = os.environ["TRIAL"]
         #used to calculate query price
         INPUT_TOKENS = 0 #prompt tokens
         OUTPUT_TOKENS = 0 #completion tokens
@@ -202,20 +202,22 @@ with gr.Blocks() as demo:
             }
         ]
 
-        #call response
-        response = client.chat.completions.create(
-            model = "llama3-8b-8192",
-            messages = [
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            tools = tools,
-            tool_choice = "auto"
-        )
+        try:
+            #call response
+            response = client.chat.completions.create(
+                model = "llama3-8b-8192",
+                messages = [
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                tools = tools,
+                tool_choice = "auto"
+            )
+        except Exception as e:
+            print(e)
 
-        print(response)
 
         #update tokens used
         INPUT_TOKENS = INPUT_TOKENS + response.usage.prompt_tokens
@@ -373,14 +375,17 @@ with gr.Blocks() as demo:
     
     #functions to display file saving information
     def learning_path_info():
+        trial_name = os.environ["TRIAL"]
         display_message = f"Learning Path Context Saved To: ./gradio-tests/{trial_name}.txt"
         gr.Info(display_message, duration=3)
 
     def extracted_content_info():
+        trial_name = os.environ["TRIAL"]
         display_message = f"Extracted Content Saved To: ./gradio-tests/content_{trial_name}.txt"
         gr.Info(display_message, duration=3)
 
     def query_info():
+        trial_name = os.environ["TRIAL"]
         display_message = f"Query Information Saved To: ./gradio-tests/queries_{trial_name}.txt"
         gr.Info(display_message, duration=3)
     
