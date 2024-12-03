@@ -251,9 +251,9 @@ with gr.Blocks() as demo:
             # json_text = content[start_index:end_index] 
 
             #get start index of JSON file
-            start_index = min(content.find("{"), content.find("["))
+            start_index = min([i for i in [content.find("{"), content.find("[")] if i >= 0])
             #get end index of JSON file
-            end_index = len(content) - min(content[::-1].find("}"), content[::-1].find("]"))
+            end_index = len(content) - min([i for i in [content[::-1].find("}"), content[::-1].find("]")] if i >= 0])
             #get the entire JSON text
             json_text = content[start_index:end_index]       
 
