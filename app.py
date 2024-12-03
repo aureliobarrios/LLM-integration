@@ -6,58 +6,45 @@ from groq import Groq
 from googlesearch import search
 from dotenv import load_dotenv
 
-# -------------------- Helper Functions --------------------
-
-#function to calculate price
-def get_request_price(input_tokens, output_tokens):
-    #price per input token
-    input_price = 2.5 / 1_000_000
-    #price per output token
-    output_price = 10 / 1_000_000
-    return (input_price * input_tokens) + (output_price * output_tokens)
-
-#function we intend to use for function calling
-def extract_learning_info(beginner_description, beginner_query, 
-                          intermediate_description, intermediate_query, 
-                          hard_description, hard_query,
-                          advanced_description, advanced_query):
-    learning_info = {
-        "beginner": {
-            "description": beginner_description,
-            "query": beginner_query
-        },
-        "intermediate": {
-            "description": intermediate_description,
-            "query": intermediate_query
-        },
-        "hard": {
-            "description": hard_description,
-            "query": hard_query
-        },
-        "advanced": {
-            "description": advanced_description,
-            "query": advanced_query
-        }
-    }
-    return learning_info
-
-# -------------------- Environment Variables --------------------
-
-INPUT_TOKENS = 0 #prompt tokens
-OUTPUT_TOKENS = 0 #completion tokens
-
-#load environment variables and build client
-load_dotenv()
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
-client = Groq(
-    api_key=GROQ_API_KEY
-)
-
-#trial name to save test
-trial_name = uuid.uuid4().hex[:5]
-
 with gr.Blocks() as demo:
+    #trial name to save test
+    trial_name = uuid.uuid4().hex[:5]
+    
+    # -------------------- Helper Functions --------------------
+
+    #function to calculate price
+    def get_request_price(input_tokens, output_tokens):
+        #price per input token
+        input_price = 2.5 / 1_000_000
+        #price per output token
+        output_price = 10 / 1_000_000
+        return (input_price * input_tokens) + (output_price * output_tokens)
+
+    #function we intend to use for function calling
+    def extract_learning_info(beginner_description, beginner_query, 
+                            intermediate_description, intermediate_query, 
+                            hard_description, hard_query,
+                            advanced_description, advanced_query):
+        learning_info = {
+            "beginner": {
+                "description": beginner_description,
+                "query": beginner_query
+            },
+            "intermediate": {
+                "description": intermediate_description,
+                "query": intermediate_query
+            },
+            "hard": {
+                "description": hard_description,
+                "query": hard_query
+            },
+            "advanced": {
+                "description": advanced_description,
+                "query": advanced_query
+            }
+        }
+        return learning_info
+    
     # ---------- Components ----------
 
     #build selection section
@@ -94,6 +81,17 @@ with gr.Blocks() as demo:
     
     #function to return bot output
     def bot(history, radio):
+        #used to calculate query price
+        INPUT_TOKENS = 0 #prompt tokens
+        OUTPUT_TOKENS = 0 #completion tokens
+        #load environment variables and build client
+        load_dotenv()
+        GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+        client = Groq(
+            api_key=GROQ_API_KEY
+        )
+
         #get previous user message
         student_prompt = history[-1]["content"]
         #get user resource selection
@@ -127,17 +125,239 @@ with gr.Blocks() as demo:
         OUTPUT_TOKENS = OUTPUT_TOKENS + chat_completion.usage.completion_tokens
         #get learning path context
         learning_path_text = chat_completion.choices[0].message.content
+        #save learning path text
+        lp_text_filename = f"./gradio-tests/{trial_name}.txt"
 
+        with open(lp_text_filename, "w+") as file:
+            file.write(learning_path_text)
         
-        
-        
-        
-        bot_message = "You typed: " + history[-1]["content"] +  ", and selected: " + radio
+        #build current prompt
+        prompt = f'''
+        Please extract the following information from the given text and return it as a JSON object:
 
-        #include link
-        bot_message = bot_message + "\nHere is your link: https://www.youtube.com/watch?v=kWo3iPDsVWU"
+        beginner_description
+        beginner_query
+        intermediate_description
+        intermediate_query
+        hard_description
+        hard_query
+        advanced_description
+        advanced_query
 
-        history.append({"role": "assistant", "content": bot_message})
+        This is the body of text to extract the information from:
+        {learning_path_text}
+        '''
+
+        #build tool configuration
+        tools  = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "extract_learning_info",
+                    "description": "Extract information from given text and return as JSON object",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "beginner_description": {
+                                "type": "string",
+                                "description": "Description of what the student is learning in the beginner difficulty level"
+                            },
+                            "beginner_query": {
+                                "type": "string",
+                                "description": "The web query the student will use to gather resources for the beginner difficulty level"
+                            },
+                            "intermediate_description": {
+                                "type": "string",
+                                "description": "Description of what the student is learning in the intermediate difficulty level"
+                            },
+                            "intermediate_query": {
+                                "type": "string",
+                                "description": "The web query the student will use to gather resources for the intermediate difficulty level"
+                            },
+                            "hard_description": {
+                                "type": "string",
+                                "description": "Description of what the student is learning in the hard difficulty level"
+                            },
+                            "hard_query": {
+                                "type": "string",
+                                "description": "The web query the student will use to gather resources for the hard difficulty level"
+                            },
+                            "advanced_description": {
+                                "type": "string",
+                                "description": "Description of what the student is learning in the advanced difficulty level"
+                            },
+                            "advanced_query": {
+                                "type": "string",
+                                "description": "The web query the student will use to gather resources for the advanced difficulty level"
+                            },
+                        },
+                        "required": [
+                            "beginner_description", "beginner_query",
+                            "intermediate_description", "intermediate_query",
+                            "hard_description", "hard_query",
+                            "advanced_description", "advanced_query"
+                        ]
+                    }
+                }
+            }
+        ]
+
+        #call response
+        response = client.chat.completions.create(
+            model = "llama3-8b-8192",
+            messages = [
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            tools = tools,
+            tool_choice = "auto"
+        )
+
+        print(response)
+
+        #update tokens used
+        INPUT_TOKENS = INPUT_TOKENS + response.usage.prompt_tokens
+        OUTPUT_TOKENS = OUTPUT_TOKENS + response.usage.completion_tokens       
+
+        if response.choices[0].message.tool_calls:
+            #get the arguments of the content
+            functio_args = json.loads(response.choices[0].message.tool_calls[0].function.arguments)
+            #run arguments to function
+            out_json = extract_learning_info(**functio_args)
+            #save the content of our response message
+            content_filename = f"./gradio-tests/content_{trial_name}.txt"
+
+            with open(content_filename, "w+") as file:
+                file.write("Passed through function tool_calls")
+        else:
+            #get the content of our response
+            content = response.choices[0].message.content
+            
+            #save the content of our response message
+            content_filename = f"./gradio-tests/content_{trial_name}.txt"
+
+            with open(content_filename, "w+") as file:
+                file.write(content)
+
+            # #get starting index of JSON object
+            # start_index = content.find("{")
+            # #get ending index of JSON object
+            # end_index = len(content) - content[::-1].find("}")
+            # #get the entire JSON text
+            # json_text = content[start_index:end_index] 
+
+            #get start index of JSON file
+            start_index = min(content.find("{"), content.find("["))
+            #get end index of JSON file
+            end_index = len(content) - min(content[::-1].find("}"), content[::-1].find("]"))
+            #get the entire JSON text
+            json_text = content[start_index:end_index]       
+
+            try:
+                #load text to json
+                json_response = json.loads(json_text)
+            except Exception as e:
+                try:
+                    #list of brackets in string
+                    brackets = []
+                    #mapping of closed brackets to open
+                    bracket_map = {
+                        "}": "{",
+                        "]": "["
+                    }
+                    #inverse bracket map
+                    inverse_map = {v: k for k, v in bracket_map.items()}
+                    #save the character index
+                    char_index = 0
+                    #loop through every character in format string
+                    for char in json_text:
+                        if char == "}" or char == "]":
+                            if brackets[-1] != bracket_map[char]:
+                                #then we must add new bracket
+                                while brackets[-1] != bracket_map[char]:
+                                    #add new bracket and remove
+                                    json_text = json_text[0:char_index] + inverse_map[brackets[-1]] + json_text[char_index:]
+                                    brackets = brackets[:-1]
+                                    # print(brackets)
+                                brackets = brackets[:-1]
+                            else:
+                                #eliminate brackets
+                                brackets = brackets[:-1]
+                        elif char == "{" or char == "[":
+                            brackets.append(char)
+                        #increment index
+                        char_index += 1
+
+                    #handle edge case where last missing bracket is at the end
+                    while brackets:
+                        json_text = json_text + inverse_map[brackets[0]]
+                        brackets = brackets[1:]
+                    #load text to json
+                    json_response = json.loads(json_text)
+                except Exception as e:
+                    print("Failure! Could not load your file to JSON with error", e)
+                # ---------- Previous implementation ----------
+
+                # if e.args[0].startswith("Expecting ',' delimiter:"):
+                #     try:
+                #         #load text to json
+                #         json_response = json.loads(json_text[0:e.pos-1] + "}" + json_text[e.pos:])
+                #     except Exception as e:
+                #         try:
+                #             if e.pos == len(json_text):
+                #                 json_response = json.loads(json_text + "}")
+                #             else:
+                #                 print("Nothing happened!")
+                #         except Exception as e:
+                #             print("Failure!! Could not load your file to JSON with error", e)
+                # else:
+                #     print("Failure!!! Could not load your file to JSON with error", e)
+            try:
+                #get the current keys of json file
+                curr_keys = json_response.keys()
+                if "tool_calls" in curr_keys:
+                    out_json = extract_learning_info(**json_response["tool_calls"][0]["parameters"])
+                    print(f"Success! Succesfully load JSON using tool_calls")
+                elif "parameters" in curr_keys:
+                    out_json = extract_learning_info(**json_response["parameters"])
+                    print(f"Success! Succesfully load JSON using parameters")
+                elif "hard_query" in curr_keys:
+                    out_json = extract_learning_info(**json_response)
+                    print(f"Success! Succesfully load JSON using arguments")
+                elif "properties" in curr_keys:
+                    out_json = extract_learning_info(**json_response["properties"])
+                    print(f"Success! Succesfully load JSON using properties")
+                else:
+                    for key in curr_keys:
+                        if "hard_query" in json_response[key].keys():
+                            print(f"Success! Succesfully load JSON using search")
+                            out_json = extract_learning_info(**json_response[key])
+                        else:
+                            out_json = None
+                            print(f"Failure! Could not process JSON keys")
+            except Exception as e:
+                print(f"Failure! Could not process JSON keys with error", e)
+
+        if out_json:
+            json_filename = f"./gradio-tests/queries_{trial_name}.json"
+
+            with open(json_filename, "w+") as file:
+                json.dump(out_json, file)
+
+        #stringify json message for output
+        json_message = json.dumps(out_json)
+
+        #append learning path to chatbot
+        history.append({"role": "assistant", "content": json_message})
+        #get the total request price
+        price = get_request_price(INPUT_TOKENS, OUTPUT_TOKENS)
+        #append query price to chatbot
+        price_message = f"Process Completed Succesfully! Total Estimated Price: ${price}"
+        history.append({"role": "assistant", "content": price_message})
+        #reset tokens for next iteration
+        INPUT_TOKENS, OUTPUT_TOKENS = 0, 0
         return history
     
     #function to return to output text
@@ -151,8 +371,17 @@ with gr.Blocks() as demo:
         history.append({"role": "assistant", "content": message})
         return history
     
-    def info_fn():
-        display_message = f"File saved to: {trial_name}"
+    #functions to display file saving information
+    def learning_path_info():
+        display_message = f"Learning Path Context Saved To: ./gradio-tests/{trial_name}.txt"
+        gr.Info(display_message, duration=3)
+
+    def extracted_content_info():
+        display_message = f"Extracted Content Saved To: ./gradio-tests/content_{trial_name}.txt"
+        gr.Info(display_message, duration=3)
+
+    def query_info():
+        display_message = f"Query Information Saved To: ./gradio-tests/queries_{trial_name}.txt"
         gr.Info(display_message, duration=3)
     
     # ---------- Actions ----------
@@ -163,7 +392,11 @@ with gr.Blocks() as demo:
     ).then(
         bot, [chatbot, radio], chatbot
     ).then(
-        info_fn, None, None
+        learning_path_info, None, None
+    ).then(
+        extracted_content_info, None, None
+    ).then(
+        query_info, None, None
     )
 
     #handle user click on clear button
@@ -181,7 +414,11 @@ with gr.Blocks() as demo:
     ).then(
         learning, chatbot, output
     ).then(
-        info_fn, None, None
+        learning_path_info, None, None
+    ).then(
+        extracted_content_info, None, None
+    ).then(
+        query_info, None, None
     )
 
 if __name__ == "__main__":

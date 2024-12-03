@@ -1,0 +1,14 @@
+{
+    "tool_calls": [
+        {
+            "id": "something",
+            "function": {
+                "name": "extract"
+            },
+            "parameters": {
+                "beginner": "something",
+                "ihard": "something"
+            }
+        }
+    ]
+}
