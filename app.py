@@ -4,6 +4,7 @@ import uuid
 import time
 import gradio as gr
 from groq import Groq
+from youtube_search import YoutubeSearch
 from googlesearch import search
 from dotenv import load_dotenv
 
@@ -47,8 +48,8 @@ with gr.Blocks() as demo:
 
     #build selection section
     radio = gr.Radio(
-        ["General", "Tutorial", "Videos"],
-        value="General",
+        ["Web Results", "Videos"],
+        value="Web Results",
         label="What kind of resources would you like to receive?"
     )
     #build chatbot interface
@@ -361,13 +362,28 @@ with gr.Blocks() as demo:
             resource_message = resource_message + f"Goal: {out_json[key]['description']}\n"
             #build query text
             # resource_message = resource_message + f"\tResources:\n"
-            #get search results
-            search_results = search(out_json[key]["query"], advanced=True, num_results=5)
-            #go through the results
-            index = 1
-            for result in search_results:
-                resource_message = resource_message + f"{index}. {result.title} : {result.url}\n"
-                index += 1
+            if radio == "Videos":
+                #get search results
+                search_results = json.loads(YoutubeSearch(out_json[key]["query"], max_results=3).to_json())
+                #go through the results
+                index = 1
+                for result in search_results["videos"]:
+                    resource_message = resource_message + f"{index}. {result['title']} : https://www.youtube.com{result['url_suffix']}\n"
+            else:
+                #get search results
+                search_results = search(out_json[key]["query"], advanced=True, num_results=5)
+                #go through the results
+                index = 1
+                for result in search_results:
+                    resource_message = resource_message + f"{index}. {result.title} : {result.url}\n"
+                    index += 1
+        
+        #get the total request price
+        price = get_request_price(INPUT_TOKENS, OUTPUT_TOKENS)
+        #append query price to chatbot
+        price_message = f"Process Completed Succesfully! Total Estimated Price: ${price}"
+        #add price message to final message
+        resource_message = resource_message + f"\n\n{price_message}"
 
         # #append learning path to chatbot
         # history.append({"role": "assistant", "content": resource_message})
@@ -375,15 +391,10 @@ with gr.Blocks() as demo:
         history.append({"role": "assistant", "content": ""})
         for character in resource_message:
             history[-1]["content"] += character
-            time.sleep(0.05)
+            time.sleep(0.005)
             yield history
 
-
-        #get the total request price
-        price = get_request_price(INPUT_TOKENS, OUTPUT_TOKENS)
-        #append query price to chatbot
-        price_message = f"Process Completed Succesfully! Total Estimated Price: ${price}"
-        history.append({"role": "assistant", "content": price_message})
+        # history.append({"role": "assistant", "content": price_message})
         #reset tokens for next iteration
         INPUT_TOKENS, OUTPUT_TOKENS = 0, 0
         return history
@@ -399,17 +410,17 @@ with gr.Blocks() as demo:
     def learning_path_info():
         trial_name = os.environ["TRIAL"]
         display_message = f"Learning Path Context Saved To: ./gradio-tests/{trial_name}.txt"
-        gr.Info(display_message, duration=5)
+        gr.Info(display_message, duration=10)
 
     def extracted_content_info():
         trial_name = os.environ["TRIAL"]
         display_message = f"Extracted Content Saved To: ./gradio-tests/content_{trial_name}.txt"
-        gr.Info(display_message, duration=5)
+        gr.Info(display_message, duration=10)
 
     def query_info():
         trial_name = os.environ["TRIAL"]
         display_message = f"Query Information Saved To: ./gradio-tests/queries_{trial_name}.txt"
-        gr.Info(display_message, duration=5)
+        gr.Info(display_message, duration=10)
     
     # ---------- Actions ----------
 
