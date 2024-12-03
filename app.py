@@ -348,11 +348,28 @@ with gr.Blocks() as demo:
             with open(json_filename, "w+") as file:
                 json.dump(out_json, file)
 
-        #stringify json message for output
-        json_message = json.dumps(out_json)
+        #TODO: Summarize entire process
+        summary_text = "This is an example summary text"
+        #build out string to display to chatbot
+        resource_message = f"{summary_text}\n"
+        #gather resources from json
+        for key in out_json:
+            #build level text
+            resource_message = resource_message + f"\n{key.capitalize()} Level\n\n"
+            #build description text
+            resource_message = resource_message + f"Goal: {out_json[key]['description']}\n"
+            #build query text
+            # resource_message = resource_message + f"\tResources:\n"
+            #get search results
+            search_results = search(out_json[key]["query"], advanced=True, num_results=5)
+            #go through the results
+            index = 1
+            for result in search_results:
+                resource_message = resource_message + f"{index}. {result.title} : {result.url}\n"
+                index += 1
 
         #append learning path to chatbot
-        history.append({"role": "assistant", "content": json_message})
+        history.append({"role": "assistant", "content": resource_message})
         #get the total request price
         price = get_request_price(INPUT_TOKENS, OUTPUT_TOKENS)
         #append query price to chatbot
