@@ -1,6 +1,7 @@
 import os
 import json
 import uuid
+import time
 import gradio as gr
 from groq import Groq
 from googlesearch import search
@@ -317,7 +318,10 @@ with gr.Blocks() as demo:
                 #get the current keys of json file
                 curr_keys = json_response.keys()
                 if "tool_calls" in curr_keys:
-                    out_json = extract_learning_info(**json_response["tool_calls"][0]["parameters"])
+                    if "parameters" in json_response["tool_calls"][0].keys():
+                        out_json = extract_learning_info(**json_response["tool_calls"][0]["parameters"])
+                    elif "function" in json_response["tool_calls"][0].keys():
+                        out_json = extract_learning_info(**json_response["tool_calls"][0]["function"]["parameters"])
                     print(f"Success! Succesfully load JSON using tool_calls")
                 elif "parameters" in curr_keys:
                     out_json = extract_learning_info(**json_response["parameters"])
@@ -365,8 +369,16 @@ with gr.Blocks() as demo:
                 resource_message = resource_message + f"{index}. {result.title} : {result.url}\n"
                 index += 1
 
-        #append learning path to chatbot
-        history.append({"role": "assistant", "content": resource_message})
+        # #append learning path to chatbot
+        # history.append({"role": "assistant", "content": resource_message})
+        #add streaming functionaility
+        history.append({"role": "assistant", "content": ""})
+        for character in resource_message:
+            history[-1]["content"] += character
+            time.sleep(0.05)
+            yield history
+
+
         #get the total request price
         price = get_request_price(INPUT_TOKENS, OUTPUT_TOKENS)
         #append query price to chatbot
