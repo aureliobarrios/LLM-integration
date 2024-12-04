@@ -94,7 +94,7 @@ with gr.Blocks() as demo:
         #get previous user message
         student_prompt = history[-1]["content"]
         # TODO : include implementation for radio resource selection
-        #build prompt that will return context for learning path
+        #build prompt that will return context for learning path        
         context_prompt = f'''
         {student_prompt}
 
@@ -341,8 +341,28 @@ with gr.Blocks() as demo:
             with open(json_filename, "w+") as file:
                 json.dump(out_json, file)
 
-            #TODO: Summarize entire process
-            summary_text = "This is an example summary text"
+            #prompt to summarize entire process
+            summary_prompt = f'''
+            Summarize what the student is learning in 4 sentences. Begin your response with: In your learning path you must learn ...
+
+            {learning_path_text}
+            '''
+            #get summary response from chatbot
+            summary_response = client.chat.completions.create(
+                messages = [
+                    {
+                        "role": "user",
+                        "content": summary_prompt
+                    }
+                ],
+                model = "llama3-8b-8192"
+            )
+            #update tokens used and price 
+            INPUT_TOKENS = INPUT_TOKENS + summary_response.usage.prompt_tokens
+            OUTPUT_TOKENS = OUTPUT_TOKENS + summary_response.usage.completion_tokens
+            
+            #get the summary text
+            summary_text = summary_response.choices[0].message.content
             #build out string to display to chatbot
             resource_message = f"{summary_text}\n"
             #gather resources from json
