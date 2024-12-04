@@ -343,6 +343,7 @@ with gr.Blocks() as demo:
 
             #prompt to summarize entire process
             summary_prompt = f'''
+            I would like you to respond like you are an instructor summarizing to a student. Please avoid drawn out responses, keep it concise and to the point.
             Summarize what the student is learning in 4 sentences. Begin your response with: In your learning path you must learn ...
 
             {learning_path_text}
@@ -375,7 +376,7 @@ with gr.Blocks() as demo:
                 # resource_message = resource_message + f"\tResources:\n"
                 if radio == "Videos":
                     #get search results
-                    search_results = json.loads(YoutubeSearch(out_json[key]["query"], max_results=3).to_json())
+                    search_results = json.loads(YoutubeSearch(out_json[key]["query"], max_results=5).to_json())
                     #go through the results
                     index = 1
                     for result in search_results["videos"]:
