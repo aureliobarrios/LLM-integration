@@ -62,7 +62,7 @@ with gr.Blocks() as demo:
         {"role": "assistant", "content": message}
     ], type="messages")
     #build textbot for message input
-    msg = gr.Textbox(placeholder="Insert your question here")
+    msg = gr.Textbox(placeholder="Insert what you wish to learn here")
 
     #build button row section
     with gr.Row():
