@@ -109,19 +109,19 @@ with gr.Blocks() as demo:
     
     #functions to display file saving information
     def learning_path_info():
-        trial_name = "TEST"
+        trial_name = os.environ["TRIAL"]
         display_message = f"Learning Path Context Saved To: ./gradio-tests/{trial_name}.txt"
-        gr.Info(display_message, duration=1)
+        gr.Info(display_message, duration=10)
 
     def extracted_content_info():
-        trial_name = "TEST"
+        trial_name = os.environ["TRIAL"]
         display_message = f"Extracted Content Saved To: ./gradio-tests/content_{trial_name}.txt"
-        gr.Info(display_message, duration=1)
+        gr.Info(display_message, duration=10)
 
     def query_info():
-        trial_name = "TEST"
+        trial_name = os.environ["TRIAL"]
         display_message = f"Query Information Saved To: ./gradio-tests/queries_{trial_name}.txt"
-        gr.Info(display_message, duration=1)
+        gr.Info(display_message, duration=10)
     
     def build_layout(build_type):
         #change layout based on student selection
