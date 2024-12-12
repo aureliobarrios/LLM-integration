@@ -8,7 +8,7 @@ from youtube_search import YoutubeSearch
 from googlesearch import search
 from dotenv import load_dotenv
 
-with gr.Blocks() as demo:    
+with gr.Blocks() as demo:
     # -------------------- Helper Functions --------------------
 
     #function to calculate price
@@ -43,40 +43,48 @@ with gr.Blocks() as demo:
             }
         }
         return learning_info
-    
+
     # ---------- Components ----------
 
-    #build selection section
-    radio = gr.Radio(
-        ["Web Results", "Videos"],
-        value="Web Results",
-        label="What kind of resources would you like to receive?"
+    #add build type component
+    build_type = gr.Radio(
+        ["Learning Path", "Tutorial"],
+        label="What do you wish to build today?"
     )
+
+    #add learning path topic textbox
+    topic = gr.Textbox(visible=False)
+
+    #add difficulty selection component
+    difficulty = gr.Radio(visible=False)
+
+    #build selection gradio
+    radio = gr.Radio(visible=False)
+
     #build chatbot interface
+    chatbot = gr.Chatbot(type="messages")
 
-    message = """Hello, I am your chatbot assistant tasked with building a learning path for you!.
-    \nPlease enter what you wish to learn below!
-    """
-
-    chatbot = gr.Chatbot(value=[
-        {"role": "assistant", "content": message}
-    ], type="messages")
-    #build textbot for message input
-    msg = gr.Textbox(placeholder="Insert what you wish to learn here")
+    #build message textbox for chatbot
+    msg = gr.Textbox(visible=False)
 
     #build button row section
     with gr.Row():
-        clear_button = gr.Button("Clear")
-        submit_button = gr.Button("Build Path")
+        clear_button = gr.Button("Clear", interactive=False)
+        submit_button = gr.Button("Build Path", interactive=False)
 
     # ---------- Functions ----------
 
     #function to receive user input
-    def user(user_message, history):
-        return "", history + [{"role": "user", "content": user_message}]
+    def user(build_type, topic, msg, history):
+        if build_type == "Learning Path":
+            #build chatbot message
+            message = f"Requested Learning Path For: {topic}"
+            return "", history + [{"role": "user", "content": message}]
+        else:
+            return "", history + [{"role": "user", "content": msg}]
     
     #function to return bot output
-    def bot(history, radio):
+    def bot(build_type, difficulty, radio, history):
         #trial name to save test
         os.environ["TRIAL"] = uuid.uuid4().hex[:5]
         trial_name = os.environ["TRIAL"]
@@ -90,10 +98,14 @@ with gr.Blocks() as demo:
         client = Groq(
             api_key=GROQ_API_KEY
         )
-
         #get previous user message
         student_prompt = history[-1]["content"]
-        # TODO : include implementation for radio resource selection
+        #handle input based on different selections
+        if build_type == "Learning Path":
+            #get the topic
+            topic = student_prompt.split(":")[1].lower()
+            #build student prompt
+            student_prompt = f"I want to learn {topic}"
         #build prompt that will return context for learning path        
         context_prompt = f'''
         {student_prompt}
@@ -127,7 +139,7 @@ with gr.Blocks() as demo:
 
         with open(lp_text_filename, "w+") as file:
             file.write(learning_path_text)
-        
+
         #build current prompt
         prompt = f'''
         Please extract the following information from the given text and return it as a JSON object:
@@ -222,7 +234,6 @@ with gr.Blocks() as demo:
             except Exception as e:
                 print(e)
 
-
             #update tokens used
             INPUT_TOKENS = INPUT_TOKENS + response.usage.prompt_tokens
             OUTPUT_TOKENS = OUTPUT_TOKENS + response.usage.completion_tokens       
@@ -247,13 +258,6 @@ with gr.Blocks() as demo:
 
                 with open(content_filename, "w+") as file:
                     file.write(content)
-
-                # #get starting index of JSON object
-                # start_index = content.find("{")
-                # #get ending index of JSON object
-                # end_index = len(content) - content[::-1].find("}")
-                # #get the entire JSON text
-                # json_text = content[start_index:end_index] 
 
                 #get start index of JSON file
                 start_index = min([i for i in [content.find("{"), content.find("[")] if i >= 0])
@@ -334,20 +338,47 @@ with gr.Blocks() as demo:
                 except Exception as e:
                     print(f"Failure! Could not process JSON keys with error", e)
             trial += 1
-
+        
+        #handle extracted information
         if out_json:
+            #build out file name
             json_filename = f"./gradio-tests/queries_{trial_name}.json"
-
+            #save extracted information
             with open(json_filename, "w+") as file:
                 json.dump(out_json, file)
 
-            #prompt to summarize entire process
-            summary_prompt = f'''
-            I would like you to respond like you are an instructor summarizing to a student. Please avoid drawn out responses, keep it concise and to the point.
-            Summarize what the student is learning in 4 sentences. Begin your response with: In your learning path you must learn ...
+            #handle summary based on build type
+            if build_type == "Learning Path":
+                #get the difficulty chosen
+                selected_difficulty = difficulty.lower()
+                #start building out summary prompt
+                summary_prompt = f'''
+                I would like you to respond like you are an instructor summarizing to a student. Please avoid drawn out responses, keep it concise and to the point.
+                Summarize the topic that the student is learning in 3 sentences. Begin your response with: In your learning path you must learn ...
 
-            {learning_path_text}
-            '''
+                Topic: {out_json[selected_difficulty]["description"]}
+                '''
+                #get the index of current level
+                difficulty_index = list(out_json.keys()).index(selected_difficulty)
+                #get the previous levels empty list if beginner level
+                prev_levels = list(out_json.keys())[:difficulty_index]
+                #loop through previous levels
+                if prev_levels:
+                    #add assumptions prompt
+                    summary_prompt = summary_prompt + "\nAlso add a couple of sentences summarizing each of the assumptions mentioned below that the student should already know. Begin this portion of the response with: This learning path assumes you know ...\n"
+                    #loop through previous level
+                    for level in prev_levels:
+                        #add assumption prompt for previous level
+                        summary_prompt = summary_prompt + f"\nAssuming the student has already learned: {out_json[level]["description"]}"    
+            else:
+                #prompt to summarize entire process
+                summary_prompt = f'''
+                I would like you to respond like you are an instructor summarizing to a student. Please avoid drawn out responses, keep it concise and to the point.
+                Summarize what the student is learning in 4 sentences. Begin your response with: In your learning path you must learn ...
+
+                {learning_path_text}
+                '''
+
             #get summary response from chatbot
             summary_response = client.chat.completions.create(
                 messages = [
@@ -361,37 +392,66 @@ with gr.Blocks() as demo:
             #update tokens used and price 
             INPUT_TOKENS = INPUT_TOKENS + summary_response.usage.prompt_tokens
             OUTPUT_TOKENS = OUTPUT_TOKENS + summary_response.usage.completion_tokens
-            
+
             #get the summary text
             summary_text = summary_response.choices[0].message.content
             #build out string to display to chatbot
             resource_message = f"{summary_text}\n"
-            #gather resources from json
-            for key in out_json:
+            #build output message based on build
+            if build_type == "Learning Path":
+                #get the selected difficulty
+                selected_difficulty = difficulty.lower()
+                #get student input
+                student_input = history[-1]["content"]
+                #get the topic
+                topic = student_input.split(":")[1].lower()
                 #build level text
-                resource_message = resource_message + f"\n{key.capitalize()} Level\n\n"
+                resource_message = resource_message + f"\n{selected_difficulty.capitalize()} Learning Path\n\n"
                 #build description text
-                resource_message = resource_message + f"Goal: {out_json[key]['description']}\n"
+                resource_message = resource_message + f"Goal: {out_json[selected_difficulty]['description']}\n"
                 #build query text
-                # resource_message = resource_message + f"\tResources:\n"
                 if radio == "Videos":
                     #get search results
-                    search_results = json.loads(YoutubeSearch(out_json[key]["query"], max_results=5).to_json())
+                    search_results = json.loads(YoutubeSearch(out_json[selected_difficulty]["query"], max_results=10).to_json())
                     #go through the results
                     index = 1
                     for result in search_results["videos"]:
                         resource_message = resource_message + f"{index}. {result['title']} : https://www.youtube.com{result['url_suffix']}\n"
                 else:
                     #get search results
-                    search_results = search(out_json[key]["query"], advanced=True, num_results=5)
+                    search_results = search(out_json[selected_difficulty]["query"], advanced=True, num_results=10)
                     #go through the results
                     index = 1
                     for result in search_results:
                         resource_message = resource_message + f"{index}. {result.title} : {result.url}\n"
                         index += 1
+            else:
+                #gather resources from json
+                for key in out_json:
+                    #build level text
+                    resource_message = resource_message + f"\n{key.capitalize()} Level\n\n"
+                    #build description text
+                    resource_message = resource_message + f"Goal: {out_json[key]['description']}\n"
+                    #build query text
+                    # resource_message = resource_message + f"\tResources:\n"
+                    if radio == "Videos":
+                        #get search results
+                        search_results = json.loads(YoutubeSearch(out_json[key]["query"], max_results=5).to_json())
+                        #go through the results
+                        index = 1
+                        for result in search_results["videos"]:
+                            resource_message = resource_message + f"{index}. {result['title']} : https://www.youtube.com{result['url_suffix']}\n"
+                    else:
+                        #get search results
+                        search_results = search(out_json[key]["query"], advanced=True, num_results=5)
+                        #go through the results
+                        index = 1
+                        for result in search_results:
+                            resource_message = resource_message + f"{index}. {result.title} : {result.url}\n"
+                            index += 1
         else:
             resource_message = "Could not process your request please try again!\n\n"
-        
+
         #get the total request price
         price = get_request_price(INPUT_TOKENS, OUTPUT_TOKENS)
         #append query price to chatbot
@@ -416,8 +476,6 @@ with gr.Blocks() as demo:
     def clear_handle(history):
         #clear chatbot history
         history = []
-        #add initial chat prompt
-        history.append({"role": "assistant", "content": message})
         return history
     
     #functions to display file saving information
@@ -436,13 +494,127 @@ with gr.Blocks() as demo:
         display_message = f"Query Information Saved To: ./gradio-tests/queries_{trial_name}.txt"
         gr.Info(display_message, duration=10)
     
-    # ---------- Actions ----------
+    def build_layout(build_type):
+        #change layout based on student selection
+        if build_type == "Learning Path":
+            #build topic textbox selection
+            topic = gr.Textbox(
+                label="What topic would you like you build your learning path for? i.e. Python, JavaScript, etc...",
+                placeholder="Insert your learning topic here",
+                interactive=True,
+                visible=True
+            )
+            #build difficulty level selection
+            difficulty = gr.Radio(
+                ["Beginner", "Intermediate", "Hard", "Advanced"],
+                value="Beginner",
+                label="What would you say your current expertise level on the subject is at?",
+                visible=True,
+                interactive=True
+            )
+            #build chatbot interface
+            chatbot = gr.Chatbot(type="messages")
+            #build textbot for message input
+            msg = gr.Textbox(visible=False)
+        else:
+            #build topic textbox selection
+            topic = gr.Textbox(visible=False, value='')
+            #build difficulty level selection
+            difficulty = gr.Radio(visible=False)
+            #build chatbot interface
+            chatbot = gr.Chatbot(type="messages")
+            #build textbox for message input
+            msg = gr.Textbox(
+                label="What question do you want to build a tutorial for?",
+                placeholder="Insert what you wish to learn here",
+                visible=True
+            )
+        return topic, difficulty, chatbot, msg
+    
+    #build layout for resource type selection
+    def resource_selection(radio):
+        radio = gr.Radio(
+            ["Web Results", "Videos"],
+            value="Web Results",
+            label="What kind of resources would you like to receive?",
+            visible=True
+        )
+        return radio
+    
+    #build layout for button functionality
+    def buttons(clear_button, submit_button):
+        clear_button = gr.Button("Clear", interactive=True)
+        submit_button = gr.Button("Build Path", interactive=True)
+        return clear_button, submit_button
+    
+    def check_input(build_type, topic, msg):
+        if build_type == "Learning Path":
+            #list possible learning paths
+            possible_topics = ["python", "javascript"]
+            #check to see if topic is note empty
+            if not topic.strip():
+                raise gr.Error("Make sure to include your topic!")
+            if topic.lower() not in possible_topics:
+                raise gr.Error("Did not recognize topic, make sure to include programming specific topics!")
+        else:
+            #check tutorial edge cases
+            if not msg.strip():
+                raise gr.Error("Make sure to input message!")
 
-    #handle user submit
-    msg.submit(
-        user, [msg, chatbot], [msg, chatbot], queue=False
+    def clear_all():
+        #add build type component
+        build_type = gr.Radio(
+            ["Learning Path", "Tutorial"],
+            label="What do you wish to build today?",
+            value=None
+        )
+
+        #add learning path topic textbox
+        topic = gr.Textbox(visible=False)
+
+        #add difficulty selection component
+        difficulty = gr.Radio(visible=False)
+
+        #build selection gradio
+        radio = gr.Radio(visible=False)
+
+        #build chatbot interface
+        chatbot = gr.Chatbot(type="messages")
+
+        #build message textbox for chatbot
+        msg = gr.Textbox(visible=False)
+
+        #build button row section
+        with gr.Row():
+            clear_button = gr.Button("Clear", interactive=False)
+            submit_button = gr.Button("Build Path", interactive=False)
+
+        return build_type, topic, difficulty, radio, chatbot, msg, clear_button, submit_button
+    
+    # ---------- Actions ----------
+    #handle build type selection
+    build_type.select(
+        build_layout, build_type, [topic, difficulty, chatbot, msg]
     ).then(
-        bot, [chatbot, radio], chatbot
+        resource_selection, radio, radio
+    ).then(
+        buttons, [clear_button, submit_button], [clear_button, submit_button]
+    )
+
+    #handle user click on clear button
+    clear_button.click(
+        clear_handle, chatbot, chatbot
+    ).then(
+        clear_all, None, [build_type, topic, difficulty, radio, chatbot, msg, clear_button, submit_button]
+    )
+
+    #handle user click on submit button
+    submit_button.click(
+        check_input, [build_type, topic, msg], None
+    ).success(
+        user, [build_type, topic, msg, chatbot], [msg, chatbot]
+    ).then(
+        bot, [build_type, difficulty, radio, chatbot], chatbot
     ).then(
         learning_path_info, None, None
     ).then(
@@ -451,16 +623,28 @@ with gr.Blocks() as demo:
         query_info, None, None
     )
 
-    #handle user click on clear button
-    clear_button.click(
-        clear_handle, chatbot, chatbot, queue=False
-    )
-
-    #handle user click on submit button
-    submit_button.click(
-        user, [msg, chatbot], [msg, chatbot], queue=False
+    #handle topic textbox submit
+    topic.submit(
+        check_input, [build_type, topic, msg], None
+    ).success(
+        user, [build_type, topic, msg, chatbot], [topic, chatbot]
     ).then(
-        bot, [chatbot, radio], chatbot
+        bot, [build_type, difficulty, radio, chatbot], chatbot
+    ).then(
+        learning_path_info, None, None
+    ).then(
+        extracted_content_info, None, None
+    ).then(
+        query_info, None, None
+    )
+    
+    #handle user submit
+    msg.submit(
+        check_input, [build_type, topic, msg], None
+    ).success(
+        user, [build_type, topic, msg, chatbot], [msg, chatbot]
+    ).then(
+        bot, [build_type, difficulty, radio, chatbot], chatbot
     ).then(
         learning_path_info, None, None
     ).then(
