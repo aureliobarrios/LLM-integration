@@ -395,9 +395,80 @@ with gr.Blocks() as demo:
 
             #get the summary text
             summary_text = summary_response.choices[0].message.content
+            #build out string to display to chatbot
+            resource_message = f"{summary_text}\n"
+            #build output message based on build
+            if build_type == "Learning Path":
+                #get the selected difficulty
+                selected_difficulty = difficulty.lower()
+                #get the topic
+                topic = student_prompt.split(":")[1].lower()
+                #build level text
+                resource_message = resource_message + f"\n{topic.capitalize()} {selected_difficulty.capitalize()} Learning Path\n\n"
+                #build description text
+                resource_message = resource_message + f"Goal: {out_json[selected_difficulty]['description']}\n"
+                #build query text
+                if radio == "Videos":
+                    #get search results
+                    search_results = json.loads(YoutubeSearch(out_json[selected_difficulty]["query"], max_results=10).to_json())
+                    #go through the results
+                    index = 1
+                    for result in search_results["videos"]:
+                        resource_message = resource_message + f"{index}. {result['title']} : https://www.youtube.com{result['url_suffix']}\n"
+                else:
+                    #get search results
+                    search_results = search(out_json[selected_difficulty]["query"], advanced=True, num_results=10)
+                    #go through the results
+                    index = 1
+                    for result in search_results:
+                        resource_message = resource_message + f"{index}. {result.title} : {result.url}\n"
+                        index += 1
+            else:
+                #gather resources from json
+                for key in out_json:
+                    #build level text
+                    resource_message = resource_message + f"\n{key.capitalize()} Level\n\n"
+                    #build description text
+                    resource_message = resource_message + f"Goal: {out_json[key]['description']}\n"
+                    #build query text
+                    # resource_message = resource_message + f"\tResources:\n"
+                    if radio == "Videos":
+                        #get search results
+                        search_results = json.loads(YoutubeSearch(out_json[key]["query"], max_results=5).to_json())
+                        #go through the results
+                        index = 1
+                        for result in search_results["videos"]:
+                            resource_message = resource_message + f"{index}. {result['title']} : https://www.youtube.com{result['url_suffix']}\n"
+                    else:
+                        #get search results
+                        search_results = search(out_json[key]["query"], advanced=True, num_results=5)
+                        #go through the results
+                        index = 1
+                        for result in search_results:
+                            resource_message = resource_message + f"{index}. {result.title} : {result.url}\n"
+                            index += 1
+        else:
+            resource_message = "Could not process your request please try again!\n\n"
 
+        #get the total request price
+        price = get_request_price(INPUT_TOKENS, OUTPUT_TOKENS)
+        #append query price to chatbot
+        price_message = f"Process Completed! Total Estimated Price: ${price}"
+        #add price message to final message
+        resource_message = resource_message + f"\n\n{price_message}"
 
+        # #append learning path to chatbot
+        # history.append({"role": "assistant", "content": resource_message})
+        #add streaming functionaility
+        history.append({"role": "assistant", "content": ""})
+        for character in resource_message:
+            history[-1]["content"] += character
+            time.sleep(0.005)
+            yield history
 
+        # history.append({"role": "assistant", "content": price_message})
+        #reset tokens for next iteration
+        INPUT_TOKENS, OUTPUT_TOKENS = 0, 0
         return history
     
     def clear_handle(history):
