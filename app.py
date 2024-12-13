@@ -2,6 +2,7 @@ import os
 import json
 import uuid
 import time
+import reddit
 import gradio as gr
 from groq import Groq
 from youtube_search import YoutubeSearch
@@ -406,18 +407,57 @@ with gr.Blocks() as demo:
                 #get the topic
                 topic = student_input.split(":")[1].lower()
                 #build level text
-                resource_message = resource_message + f"\n{selected_difficulty.capitalize()} Learning Path\n\n"
+                resource_message = resource_message + f"\n{selected_difficulty.capitalize()} Learning Path\n"
                 #build description text
-                resource_message = resource_message + f"Goal: {out_json[selected_difficulty]['description']}\n"
+                resource_message = resource_message + f"Goal: {out_json[selected_difficulty]['description']}\n\n"
                 #build query text
                 if radio == "Videos":
+                    #build message
+                    resource_message = resource_message + "Resources:\n"
                     #get search results
                     search_results = json.loads(YoutubeSearch(out_json[selected_difficulty]["query"], max_results=10).to_json())
                     #go through the results
                     index = 1
                     for result in search_results["videos"]:
                         resource_message = resource_message + f"{index}. {result['title']} : https://www.youtube.com{result['url_suffix']}\n"
+                elif radio == "Reddit":
+                    #build message
+                    resource_message = resource_message + "Reddit Threads & Resources:\n\n"
+                    #build a search query
+                    search_query = f"Reddit {out_json[selected_difficulty]["query"]}"
+                    #get search results for query
+                    search_results = search(search_query, advanced=True, num_results=20)
+                    #keep track of current thread
+                    thread_index = 1
+                    #loop through our search results
+                    for result in search_results:
+                        #check to see if search result is reddit link
+                        if result.url.split(".")[1] == "reddit":
+                            #add title message
+                            resource_message = resource_message + f"Reddit Thread {thread_index} -> {result.title}\nThread URL: {result.url}\n"
+                            #check to see if we have resources
+                            scraped_resources = reddit.get_links(result.url)
+                            #check to see if we found resources
+                            if scraped_resources:
+                                #update message
+                                resource_message = resource_message + "Resources Found Within Thread:\n"
+                                #keep track of resource index
+                                resource_index = 1
+                                #loop through resources
+                                for resource in scraped_resources:
+                                    #update message
+                                    resource_message = resource_message + f"{resource_index}. {resource}\n"
+                                    #update index
+                                    resource_index += 1
+                                resource_message = resource_message + "\n"
+                            else:
+                                resource_message = resource_message + "\n" 
+                            if thread_index >= 5:
+                                break
+                            thread_index += 1
                 else:
+                    #build message
+                    resource_message = resource_message + "Resources:\n"
                     #get search results
                     search_results = search(out_json[selected_difficulty]["query"], advanced=True, num_results=10)
                     #go through the results
@@ -532,13 +572,22 @@ with gr.Blocks() as demo:
         return topic, difficulty, chatbot, msg
     
     #build layout for resource type selection
-    def resource_selection(radio):
-        radio = gr.Radio(
-            ["Web Results", "Videos"],
-            value="Web Results",
-            label="What kind of resources would you like to receive?",
-            visible=True
-        )
+    def resource_selection(build_type, radio):
+        #build radio best on build type
+        if build_type == "Learning Path":
+            radio = gr.Radio(
+                ["Web Results", "Reddit", "Videos"],
+                value="Web Results",
+                label="What kind of resources would you like to receive?",
+                visible=True
+            )
+        else:
+            radio = gr.Radio(
+                ["Web Results", "Videos"],
+                value="Web Results",
+                label="What kind of resources would you like to receive?",
+                visible=True
+            )
         return radio
     
     #build layout for button functionality
@@ -596,7 +645,7 @@ with gr.Blocks() as demo:
     build_type.select(
         build_layout, build_type, [topic, difficulty, chatbot, msg]
     ).then(
-        resource_selection, radio, radio
+        resource_selection, [build_type, radio], radio
     ).then(
         buttons, [clear_button, submit_button], [clear_button, submit_button]
     )
