@@ -384,6 +384,10 @@ with gr.Blocks() as demo:
             summary_response = client.chat.completions.create(
                 messages = [
                     {
+                        "role": "system",
+                        "content": "Give your responses directly without any introductory sentences."
+                    },
+                    {
                         "role": "user",
                         "content": summary_prompt
                     }
@@ -420,6 +424,16 @@ with gr.Blocks() as demo:
                     index = 1
                     for result in search_results["videos"]:
                         resource_message = resource_message + f"{index}. {result['title']} : https://www.youtube.com{result['url_suffix']}\n"
+                elif radio == "Documentation":
+                    #build message
+                    resource_message = resource_message + "Documentation Resources:\n"
+                    #get search results
+                    search_results = search(f'Documentation {out_json[selected_difficulty]["query"]}', advanced=True, num_results=10)
+                    #go through the results
+                    index = 1
+                    for result in search_results:
+                        resource_message = resource_message + f"{index}. {result.title} : {result.url}\n"
+                        index += 1
                 elif radio == "Reddit":
                     #build message
                     resource_message = resource_message + "Reddit Threads & Resources:\n\n"
@@ -576,7 +590,7 @@ with gr.Blocks() as demo:
         #build radio best on build type
         if build_type == "Learning Path":
             radio = gr.Radio(
-                ["Web Results", "Reddit", "Videos"],
+                ["Web Results", "Documentation","Reddit", "Videos"],
                 value="Web Results",
                 label="What kind of resources would you like to receive?",
                 visible=True
