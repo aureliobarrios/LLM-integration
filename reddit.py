@@ -4,7 +4,15 @@ import requests
 
 def regex_links(text):
     #find all the links in a text
-    return re.findall(r'https?://[^\s)\]]+', text)
+    scraped_links = re.findall(r'https?://[^\s)\]]+', text)
+    #remove bot links
+    clean_links = []
+    for link in scraped_links:
+        #check for non bot links
+        if len(re.findall(r'RemindMeBot', link)) == 0:
+            #add to list of clean links
+            clean_links.append(link)
+    return clean_links
 
 #define recursive helper function that will scrape comment data
 def link_search(comment):
