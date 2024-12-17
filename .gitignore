@@ -9,3 +9,4 @@ output/
 trials/
 .env
 gradio-tests-v1/
+resource-database.db
