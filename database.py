@@ -141,11 +141,11 @@ if __name__ == "__main__":
     #     #build query
     #     db.insert_learning_path(curr_data)
 
-    #get rows
-    rows = db.get_learning_path_by_topic("python")
+    # #get rows
+    # rows = db.get_learning_path_by_topic("python")
 
-    for row in rows:
-        print(row)
+    # for row in rows:
+    #     print(row)
    
         
     #commit changes made in session
