@@ -100,6 +100,7 @@ class KnowledgeBase:
         );
         """
         try:
+            #TODO: change self.cursor.execute -> self.query (no need for try statements then)
             #execute query
             self.cursor.execute(insert_query)
 
@@ -146,7 +147,6 @@ if __name__ == "__main__":
 
     # for row in rows:
     #     print(row)
-   
         
     #commit changes made in session
     db.commit_session()
