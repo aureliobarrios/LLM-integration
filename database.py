@@ -59,6 +59,37 @@ def create_tables():
     #close connection
     conn_details.close()
 
+def insert_learning_path(data):
+    #build insert query
+    insert_query = f"""
+    INSERT INTO learning_paths (trial, topic)
+    VALUES (
+        '{data['trial']}', 
+        '{data['topic']}'
+    );
+    """
+    #get connection
+    conn_details = establish_connection()
+    #build server cursor
+    cursor = conn_details.cursor()
+    #build tables in server
+    cursor.execute(insert_query)
+    #print message
+    print("-- Successfully Updated Learning Paths Table --")
+    #commit changes
+    conn_details.commit()
+    #close cursor
+    cursor.close()
+    #close connection
+    conn_details.close()
+
+def insert_resource_link():
+    return None
+
 if __name__ == "__main__":
     #add row to table
-    establish_connection()
+    data = {
+        "trial": "test_1",
+        "topic": "python"
+    }
+    insert_learning_path(data)
