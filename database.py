@@ -66,8 +66,9 @@ class KnowledgeBase:
         table_query = """
         CREATE TABLE learning_paths (
             id SERIAL PRIMARY KEY,
-            trial TEXT,
-            topic TEXT
+            topic TEXT,
+            learning_text TEXT,
+            out_json JSON
         );
         CREATE TABLE resource_links (
             id SERIAL PRIMARY KEY,
@@ -93,10 +94,11 @@ class KnowledgeBase:
     def insert_learning_path(self, data):
         #build insert query
         insert_query = f"""
-        INSERT INTO learning_paths (trial, topic)
+        INSERT INTO learning_paths (topic, learning_text, out_json)
         VALUES (
-            '{data['trial']}', 
-            '{data['topic']}'
+            '{data['topic']}', 
+            '{data['text']}',
+            '{data['json']}'
         );
         """
         try:
@@ -131,6 +133,8 @@ if __name__ == "__main__":
     db = KnowledgeBase()
     #start the session
     db.start_session()
+
+    
 
     #loop through different topics
     # for topic in ["python", "javascript", "sql"]:
