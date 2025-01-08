@@ -97,28 +97,19 @@ class KnowledgeBase:
         #execute the query
         self.query(insert_query)
 
-    #function to build insert learning path query
-    def insert_learning_path(self, data):
-        #build insert query
-        insert_query = f"""
-        INSERT INTO learning_paths (topic, learning_text, out_json)
-        VALUES (
-            '{data['topic']}', 
-            '{data['text']}',
-            '{data['json']}'
-        );
+    def find_url(self, url):
+        #build check query
+        check_query = f"""
+        SELECT COUNT(1) FROM resource_links
+        WHERE resource = '{url}';
         """
         #execute query
-        self.query(insert_query)
+        self.cursor.execute(check_query)
+        #check to see if url is already in database
+        if self.cursor.fetchone()[0] == 0:
+            return False
+        return True
 
-    def get_learning_path_by_topic(self, topic):
-        #build get query
-        get_query = f"""
-        SELECT * FROM learning_paths
-        WHERE topic = '{topic}';
-        """
-        #execute query
-        self.query(get_query)
     
 if __name__ == "__main__":
     #build database
