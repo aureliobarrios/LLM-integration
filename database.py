@@ -72,7 +72,8 @@ class KnowledgeBase:
             topic TEXT,
             difficulty TEXT,
             validated BOOLEAN,
-            avg_rating REAL,
+            initial_rating INTEGER,
+            reddit_rating REAL,
             found_time TIMESTAMP
         );
         """
