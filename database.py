@@ -76,13 +76,15 @@ class KnowledgeBase:
             found_time TIMESTAMP
         );
         """
-        try:
-            #execute query
-            self.cursor.execute(table_query)
-
-            print("-- Successfully Created Tables --")
-        except Exception as e:
-            print("Connection Error:", e)
+        #execute query
+        self.query(table_query)
+            
+    def insert_resource(self, data):
+        #build insert query
+        insert_query = f'''
+        '''
+        #execute the query
+        self.query(insert_query)
 
     #function to build insert learning path query
     def insert_learning_path(self, data):
@@ -95,15 +97,8 @@ class KnowledgeBase:
             '{data['json']}'
         );
         """
-        try:
-            #TODO: change self.cursor.execute -> self.query (no need for try statements then)
-            #execute query
-            self.cursor.execute(insert_query)
-
-            print("-- Successfully Inserted Learning Path --")
-        except Exception as e:
-            print("Connection Error:", e)
-    
+        #execute query
+        self.query(insert_query)
 
     def get_learning_path_by_topic(self, topic):
         #build get query
@@ -111,16 +106,8 @@ class KnowledgeBase:
         SELECT * FROM learning_paths
         WHERE topic = '{topic}';
         """
-        try:
-            #execute query
-            self.cursor.execute(get_query)
-            #get the rows
-            rows = self.cursor.fetchall()
-            print("-- Successfully Retrieved Rows By Topic --")
-        except Exception as e:
-            print("Connection Error:", e)
-        return rows
-
+        #execute query
+        self.query(get_query)
     
 if __name__ == "__main__":
     #build database
