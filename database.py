@@ -81,7 +81,7 @@ class KnowledgeBase:
             
     def insert_resource(self, data):
         #build insert query
-        insert_query = f'''
+        insert_query = f"""
         INSERT INTO resource_links (resource, title, description, topic, difficulty, validated, found_time)
         VALUES (
             '{data['resource']}',
@@ -90,9 +90,9 @@ class KnowledgeBase:
             '{data['topic']}',
             '{data['difficulty']}',
             '{data['validated']}',
-            '{data['found_time']}',
+            '{data['found_time']}'
         );
-        '''
+        """
         #execute the query
         self.query(insert_query)
 
