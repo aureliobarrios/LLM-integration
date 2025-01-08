@@ -64,12 +64,6 @@ class KnowledgeBase:
     def build_tables(self):
         #create tables query
         table_query = """
-        CREATE TABLE learning_paths (
-            id SERIAL PRIMARY KEY,
-            topic TEXT,
-            learning_text TEXT,
-            out_json JSON
-        );
         CREATE TABLE resource_links (
             id SERIAL PRIMARY KEY,
             resource TEXT,
