@@ -5,6 +5,7 @@ import time
 import reddit
 import gradio as gr
 from groq import Groq
+from datetime import datetime
 from youtube_search import YoutubeSearch
 from googlesearch import search
 from dotenv import load_dotenv
@@ -44,6 +45,26 @@ with gr.Blocks() as demo:
             }
         }
         return learning_info
+    
+    #helper function used to build data dictionary for database input
+    def build_data(result, topic, difficulty):
+        #build data dictionary
+        data = {}
+        #save resource url
+        data["resource"] = result.url
+        #save resource title
+        data["title"] = result.title
+        #save resource description
+        data["description"] = result.description.replace("'", "")
+        #save resource topic
+        data["topic"] = topic
+        #save resource difficulty
+        data["difficulty"] = difficulty
+        #save resource validation
+        data["validated"] = False
+        #save resource found time
+        data["found_time"] = datetime.now()
+        return data
 
     # ---------- Components ----------
 
