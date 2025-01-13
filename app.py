@@ -550,7 +550,35 @@ with gr.Blocks() as demo:
                                             if not db.find_url(scraped_result.url) and urlparse(scraped_result.url).netloc not in ignore_urls:
                                                 #build current data
                                                 curr_data = build_data(scraped_result, topic, selected_difficulty)
-                        
+                                                #break out of current loop if data found
+                                                if curr_data:
+                                                    #append data to list
+                                                    results_data.append(curr_data)
+                                                    #build resource message
+                                                    resource_message = resource_message + f"{len(results_data)}. {scraped_result.title} : {scraped_result.url}\n"
+                                                    break
+                                            else:
+                                                #break out of loop since url is already in database
+                                                print(f"Link: {scraped_result.url} already exists in database")
+                                                break
+                                        #break out of loop if all data requirements met
+                                        if len(results_data) >= 5:
+                                            break
+                                    #break out of loop if all data requirements met
+                                    if len(results_data) >= 5:
+                                        break
+                    #check to see if we have enough data to push to database
+                    if len(results_data) >= 5:
+                        #loop through search results and insert
+                        for data in results_data:
+                            #insert current data into database
+                            db.insert_resource(data)
+                    else:
+                        print("Not enough data to commit")
+                    #commit changes to database session
+                    db.commit_session()
+                    #end database session
+                    db.end_session()                        
             else:
                 #gather resources from json
                 for key in out_json:
