@@ -508,10 +508,48 @@ with gr.Blocks() as demo:
                         if not db.find_url(result.url) and urlparse(result.url).netloc not in ignore_urls:
                             #build current data
                             curr_data = build_data(result, topic, selected_difficulty)
-                            #build resource message
-                            resource_message = resource_message + f"{index}. {result.title} : {result.url}\n"
                             #append current data to list
                             results_data.append(curr_data)
+                            #build resource message
+                            resource_message = resource_message + f"{len(results_data)}. {result.title} : {result.url}\n"
+                        else:
+                            #print statement for debugging
+                            print(f"Link: {result.url} Already exists in database")
+                            continue
+                        #check to see if we found our necessary five links
+                        if len(results_data) == 5:
+                            break
+                    
+                    #check to see if we are missing resources
+                    if len(results_data) < 5:
+                        #build search query for reddit
+                        reddit_query = f"Reddit {out_json[selected_difficulty]["query"]}"
+                        #get reddit search results
+                        reddit_results = search(reddit_query, advanced=True, num_results=5)
+
+                        index = 0
+                        #go through reddit search results
+                        for result in reddit_results:
+                            #increment index
+                            index += 1
+                            #print statement for debuggin
+                            print(f"Reddit Round: {index}")
+                            #make sure we have a reddit link to scrape
+                            if result.url.split(".")[1] == "reddit":
+                                #web scrape reddit thread and find resources
+                                scraped_resources = reddit.get_links(result.url)
+                                #check to see if we have resources from thread
+                                if scraped_resources:
+                                    #loop through the scraped resources
+                                    for scraped_url in scraped_resources:
+                                        #reverse search url for detailed information
+                                        web_results = search(scraped_url, advanced=True, num_results=5)
+                                        #check to see if link is already in the database
+                                        for scraped_result in web_results:
+                                            #make sure current link is not already in the database
+                                            if not db.find_url(scraped_result.url) and urlparse(scraped_result.url).netloc not in ignore_urls:
+                                                #build current data
+                                                curr_data = build_data(scraped_result, topic, selected_difficulty)
                         
             else:
                 #gather resources from json
