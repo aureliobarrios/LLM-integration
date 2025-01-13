@@ -483,15 +483,36 @@ with gr.Blocks() as demo:
                                 break
                             thread_index += 1
                 else:
-                    #build message
+                    #build list of urls to ignore
+                    ignore_urls = ['www.udemy.com']
+                    #build output message
                     resource_message = resource_message + "Resources:\n"
+
+                    #start database interaction
+                    db = KnowledgeBase()
+                    #start database session
+                    db.start_session()
                     #get search results
-                    search_results = search(out_json[selected_difficulty]["query"], advanced=True, num_results=10)
+                    search_results = search(out_json[selected_difficulty]["query"], advanced=True, num_results=5)
+                    
+                    index = 0
+                    #save search results
+                    results_data = []
                     #go through the results
-                    index = 1
                     for result in search_results:
-                        resource_message = resource_message + f"{index}. {result.title} : {result.url}\n"
+                        #increment index
                         index += 1
+                        #print statement for debugging
+                        print(f"Round: {index}")
+                        #check if url is already in the database
+                        if not db.find_url(result.url) and urlparse(result.url).netloc not in ignore_urls:
+                            #build current data
+                            curr_data = build_data(result, topic, selected_difficulty)
+                            #build resource message
+                            resource_message = resource_message + f"{index}. {result.title} : {result.url}\n"
+                            #append current data to list
+                            results_data.append(curr_data)
+                        
             else:
                 #gather resources from json
                 for key in out_json:
