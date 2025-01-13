@@ -6,7 +6,9 @@ import reddit
 import gradio as gr
 from groq import Groq
 from datetime import datetime
+from database import KnowledgeBase
 from youtube_search import YoutubeSearch
+from urllib.parse import urlparse
 from googlesearch import search
 from dotenv import load_dotenv
 
