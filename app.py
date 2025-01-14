@@ -75,6 +75,19 @@ with gr.Blocks() as demo:
         #save resource url
         data["resource"] = f"https://www.youtube.com{result['url_suffix']}"
         #save resource title
+        data["title"] = result["channel"].replace("'", "")
+        #save resource description
+        data["description"] = result["title"].replace("'", "")
+        #save resource topic
+        data["topic"] = topic
+        #save resource difficulty
+        data["difficulty"] = difficulty
+        #save resource validation
+        data["validated"] = False
+        #save resource found time
+        data["found_time"] = datetime.now()
+        return data
+
 
     # ---------- Components ----------
 
