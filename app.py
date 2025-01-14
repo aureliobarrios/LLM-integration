@@ -690,7 +690,7 @@ with gr.Blocks() as demo:
         #build radio best on build type
         if build_type == "Learning Path":
             radio = gr.Radio(
-                ["Web Results","Reddit", "Videos"],
+                ["Web Results", "Videos", "Reddit"],
                 value="Web Results",
                 label="What kind of resources would you like to receive?",
                 visible=True
