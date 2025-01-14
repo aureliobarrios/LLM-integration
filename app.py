@@ -464,7 +464,8 @@ with gr.Blocks() as demo:
                     db = KnowledgeBase()
                     #start session
                     db.start_session()
-
+                    #search results
+                    results_data = []
                     #build message
                     resource_message = resource_message + "Resources:\n"
                     #get search results
@@ -474,31 +475,25 @@ with gr.Blocks() as demo:
                         #make sure current result is not already in the database
                         if not db.find_url(f"https://www.youtube.com{result['url_suffix']}"):
                             #build current data
-                            ...
+                            curr_data = build_video_data(result, topic, selected_difficulty)
+                            #append data to list
+                            results_data.append(curr_data)
+                            #build resource message
+                            resource_message = resource_message + f"{len(results_data)}. {result['title']} : https://www.youtube.com{result['url_suffix']}\n"
                         else:
                             print(f"Video: https://www.youtube.com{result['url_suffix']} already exists in database")
                             continue
-
-
-
-
-
+                        #check to see if we found necessary resources
+                        if len(results_data) == 5:
+                            break
+                    #push resources into database
+                    for data in results_data:
+                        #insert current link into database
+                        db.insert_resource(data)
                     #commit changes made in session
                     db.commit_session()
                     #end session
                     db.end_session()
-                    
-
-
-
-
-
-
-                    
-                    #go through the results
-                    index = 1
-                    for result in search_results["videos"]:
-                        resource_message = resource_message + f"{index}. {result['title']} : https://www.youtube.com{result['url_suffix']}\n"                
                 elif radio == "Reddit":
                     #build message
                     resource_message = resource_message + "Reddit Threads & Resources:\n\n"
