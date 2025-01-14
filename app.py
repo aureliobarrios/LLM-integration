@@ -67,6 +67,14 @@ with gr.Blocks() as demo:
         #save resource found time
         data["found_time"] = datetime.now()
         return data
+    
+    #helper function to build video data dictionary for database input
+    def build_video_data(result, topic, difficulty):
+        #build data dictionary
+        data = {}
+        #save resource url
+        data["resource"] = f"https://www.youtube.com{result['url_suffix']}"
+        #save resource title
 
     # ---------- Components ----------
 
@@ -444,9 +452,21 @@ with gr.Blocks() as demo:
                     #start session
                     db.start_session()
 
-                    
+                    #build message
+                    resource_message = resource_message + "Resources:\n"
+                    #get search results
+                    search_results = json.loads(YoutubeSearch(out_json[selected_difficulty]["query"], max_results=20).to_json())
+                    #go through the results
+                    for result in search_results["videos"]:
+                        #make sure current result is not already in the database
+                        if not db.find_url(f"https://www.youtube.com{result['url_suffix']}"):
+                            #build current data
+                            ...
+                        else:
+                            print(f"Video: https://www.youtube.com{result['url_suffix']} already exists in database")
+                            continue
 
-                    
+
 
 
 
@@ -461,10 +481,7 @@ with gr.Blocks() as demo:
 
 
 
-                    #build message
-                    resource_message = resource_message + "Resources:\n"
-                    #get search results
-                    search_results = json.loads(YoutubeSearch(out_json[selected_difficulty]["query"], max_results=10).to_json())
+                    
                     #go through the results
                     index = 1
                     for result in search_results["videos"]:
