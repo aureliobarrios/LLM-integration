@@ -439,6 +439,28 @@ with gr.Blocks() as demo:
                 resource_message = resource_message + f"Goal: {out_json[selected_difficulty]['description']}\n\n"
                 #build query text
                 if radio == "Videos":
+                    #establish database connection
+                    db = KnowledgeBase()
+                    #start session
+                    db.start_session()
+
+                    
+
+                    
+
+
+
+                    #commit changes made in session
+                    db.commit_session()
+                    #end session
+                    db.end_session()
+                    
+
+
+
+
+
+
                     #build message
                     resource_message = resource_message + "Resources:\n"
                     #get search results
