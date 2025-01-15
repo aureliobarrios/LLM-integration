@@ -494,41 +494,6 @@ with gr.Blocks() as demo:
                     db.commit_session()
                     #end session
                     db.end_session()
-                elif radio == "Reddit":
-                    #build message
-                    resource_message = resource_message + "Reddit Threads & Resources:\n\n"
-                    #build a search query
-                    search_query = f"Reddit {out_json[selected_difficulty]["query"]}"
-                    #get search results for query
-                    search_results = search(search_query, advanced=True, num_results=20)
-                    #keep track of current thread
-                    thread_index = 1
-                    #loop through our search results
-                    for result in search_results:
-                        #check to see if search result is reddit link
-                        if result.url.split(".")[1] == "reddit":
-                            #add title message
-                            resource_message = resource_message + f"Reddit Thread {thread_index} -> {result.title}\nThread URL: {result.url}\n"
-                            #check to see if we have resources
-                            scraped_resources = reddit.get_links(result.url)
-                            #check to see if we found resources
-                            if scraped_resources:
-                                #update message
-                                resource_message = resource_message + "Resources Found Within Thread:\n"
-                                #keep track of resource index
-                                resource_index = 1
-                                #loop through resources
-                                for resource in scraped_resources:
-                                    #update message
-                                    resource_message = resource_message + f"{resource_index}. {resource}\n"
-                                    #update index
-                                    resource_index += 1
-                                resource_message = resource_message + "\n"
-                            else:
-                                resource_message = resource_message + "\n" 
-                            if thread_index >= 5:
-                                break
-                            thread_index += 1
                 else:
                     #build list of urls to ignore
                     ignore_urls = ['www.udemy.com']
