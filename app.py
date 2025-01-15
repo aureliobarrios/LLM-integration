@@ -505,7 +505,7 @@ with gr.Blocks() as demo:
                         #make sure current result is not already in the database
                         if not db.find_url(f"https://www.youtube.com{result['url_suffix']}"):
                             #build current data
-                            curr_data = build_video_data(result, topic, selected_difficulty)
+                            curr_data = build_data(result, topic, selected_difficulty, True)
                             #append data to list
                             results_data.append(curr_data)
                             #build resource message
@@ -549,7 +549,7 @@ with gr.Blocks() as demo:
                         #check if url is already in the database
                         if not db.find_url(result.url) and urlparse(result.url).netloc not in ignore_urls:
                             #build current data
-                            curr_data = build_data(result, topic, selected_difficulty)
+                            curr_data = build_data(result, topic, selected_difficulty, False)
                             #append current data to list
                             results_data.append(curr_data)
                             #build resource message
