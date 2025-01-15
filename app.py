@@ -48,6 +48,36 @@ with gr.Blocks() as demo:
         }
         return learning_info
     
+    #helper function to build data data dictionary for database input
+    def build_data(result, topic, difficulty, video):
+        #build data dictionary
+        data = {}
+        #handle data input based on data type
+        if video:
+            #save resource url
+            data["resource"] = f"https://www.youtube.com{result['url_suffix']}"
+            #save resource title
+            data["title"] = result["channel"].replace("'", "")
+            #save resource description
+            data["description"] = result["title"].replace("'", "")
+        else:
+            #save resource url
+            data["resource"] = result.url
+            #save resource title
+            data["title"] = result.title
+            #save resource description
+            data["description"] = result.description.replace("'", "")
+        #save resource topic
+        data["topic"] = topic
+        #save resource difficulty
+        data["difficulty"] = difficulty
+        #save resource validation
+        data["validated"] = False
+        #save resource found time
+        data["found_time"] = datetime.now()
+        return data
+
+    
     #helper function used to build data dictionary for database input
     def build_data(result, topic, difficulty):
         #build data dictionary
