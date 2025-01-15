@@ -76,49 +76,7 @@ with gr.Blocks() as demo:
         #save resource found time
         data["found_time"] = datetime.now()
         return data
-
     
-    #helper function used to build data dictionary for database input
-    def build_data(result, topic, difficulty):
-        #build data dictionary
-        data = {}
-        #save resource url
-        data["resource"] = result.url
-        #save resource title
-        data["title"] = result.title
-        #save resource description
-        data["description"] = result.description.replace("'", "")
-        #save resource topic
-        data["topic"] = topic
-        #save resource difficulty
-        data["difficulty"] = difficulty
-        #save resource validation
-        data["validated"] = False
-        #save resource found time
-        data["found_time"] = datetime.now()
-        return data
-    
-    #helper function to build video data dictionary for database input
-    def build_video_data(result, topic, difficulty):
-        #build data dictionary
-        data = {}
-        #save resource url
-        data["resource"] = f"https://www.youtube.com{result['url_suffix']}"
-        #save resource title
-        data["title"] = result["channel"].replace("'", "")
-        #save resource description
-        data["description"] = result["title"].replace("'", "")
-        #save resource topic
-        data["topic"] = topic
-        #save resource difficulty
-        data["difficulty"] = difficulty
-        #save resource validation
-        data["validated"] = False
-        #save resource found time
-        data["found_time"] = datetime.now()
-        return data
-
-
     # ---------- Components ----------
 
     #add build type component
