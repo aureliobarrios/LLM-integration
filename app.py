@@ -370,7 +370,7 @@ with gr.Blocks() as demo:
                                 print(f"Failure! Could not process JSON keys")
                 except Exception as e:
                     print(f"Failure! Could not process JSON keys with error", e)
-
+        
         #handle extracted information
         if out_json:
             #build out file name
@@ -491,81 +491,104 @@ with gr.Blocks() as demo:
                     db = KnowledgeBase()
                     #start database session
                     db.start_session()
-                    #get search results
-                    search_results = search(out_json[selected_difficulty]["query"], advanced=True, num_results=WEB_RESULTS)
                     
-                    index = 0
-                    #save search results
-                    results_data = []
-                    #go through the results
-                    for result in search_results:
-                        #increment index
-                        index += 1
-                        #print statement for debugging
-                        print(f"Round: {index}")
-                        #check if url is already in the database
-                        if not db.find_url(result.url) and urlparse(result.url).netloc not in ignore_urls:
-                            #build current data
-                            curr_data = build_data(result, topic, selected_difficulty, False)
-                            #append current data to list
-                            results_data.append(curr_data)
-                            #build resource message
-                            resource_message = resource_message + f"{len(results_data)}. {result.title} : {result.url}\n"
+                    #save results data
+                    results_data = None
+                    #build our results data
+                    while results_data is None:
+                        #get search results
+                        search_results = search(out_json[selected_difficulty]["query"], advanced=True, num_results=WEB_RESULTS)
+                        #check to see if we have search results
+                        if next(search_results, -1) == -1:
+                            #print for debuggin
+                            print("Empty Search Results Trying Again!")
+                            #sleep for 5 seconds
+                            time.sleep(5)
                         else:
-                            #print statement for debugging
-                            print(f"Link: {result.url} Already exists in database")
-                            continue
-                        #check to see if we found our necessary five links
-                        if len(results_data) == RESOURCES_NEEDED:
-                            break
+                            #save index
+                            index = 0
+                            #we have search results
+                            results_data = []
+                            #go through the results
+                            for result in search_results:
+                                #increment index
+                                index += 1
+                                #print statement for debugging
+                                print(f"Round: {index}")
+                                #check if url is already in the database
+                                if not db.find_url(result.url) and urlparse(result.url).netloc not in ignore_urls:
+                                    #build current data
+                                    curr_data = build_data(result, topic, selected_difficulty, False)
+                                    #append current data to list
+                                    results_data.append(curr_data)
+                                    #build resource message
+                                    resource_message = resource_message + f"{len(results_data)}. {result.title} : {result.url}\n"
+                                else:
+                                    #print statement for debugging
+                                    print(f"Link: {result.url} Already exists in database")
+                                    continue
+                                #check to see if we found our necessary five links
+                                if len(results_data) == RESOURCES_NEEDED:
+                                    break
                     
                     #check to see if we are missing resources
                     if len(results_data) < RESOURCES_NEEDED:
                         #build search query for reddit
                         reddit_query = f"Reddit {out_json[selected_difficulty]["query"]}"
-                        #get reddit search results
-                        reddit_results = search(reddit_query, advanced=True, num_results=WEB_RESULTS)
-
-                        index = 0
-                        #go through reddit search results
-                        for result in reddit_results:
-                            #increment index
-                            index += 1
-                            #print statement for debuggin
-                            print(f"Reddit Round: {index}")
-                            #make sure we have a reddit link to scrape
-                            if result.url.split(".")[1] == "reddit":
-                                #web scrape reddit thread and find resources
-                                scraped_resources = reddit.get_links(result.url)
-                                #check to see if we have resources from thread
-                                if scraped_resources:
-                                    #loop through the scraped resources
-                                    for scraped_url in scraped_resources:
-                                        #reverse search url for detailed information
-                                        web_results = search(scraped_url, advanced=True, num_results=WEB_RESULTS)
-                                        #check to see if link is already in the database
-                                        for scraped_result in web_results:
-                                            #make sure current link is not already in the database
-                                            if not db.find_url(scraped_result.url) and urlparse(scraped_result.url).netloc not in ignore_urls:
-                                                #build current data
-                                                curr_data = build_data(scraped_result, topic, selected_difficulty)
-                                                #break out of current loop if data found
-                                                if curr_data:
-                                                    #append data to list
-                                                    results_data.append(curr_data)
-                                                    #build resource message
-                                                    resource_message = resource_message + f"{len(results_data)}. {scraped_result.title} : {scraped_result.url}\n"
+                        #build reddit index
+                        reddit_index = None
+                        #get our reddit search
+                        while reddit_index is None:
+                            #get reddit search results
+                            reddit_results = search(reddit_query, advanced=True, num_results=WEB_RESULTS)
+                            #check to see if we have search results
+                            if next(reddit_results, -1) == -1:
+                                print("Empty Reddit Results Trying Again!")
+                                #sleep for 5 seconds
+                                time.sleep(5)
+                            else:
+                                #build reddit search results
+                                reddit_index = 0
+                                #go through reddit search results
+                                for result in reddit_results:
+                                    #increment index
+                                    reddit_index += 1
+                                    #print statement for debuggin
+                                    print(f"Reddit Round: {reddit_index}")
+                                    #make sure we have a reddit link to scrape
+                                    if result.url.split(".")[1] == "reddit":
+                                        #web scrape reddit thread and find resources
+                                        scraped_resources = reddit.get_links(result.url)
+                                        #check to see if we have resources from thread
+                                        if scraped_resources:
+                                            #loop through the scraped resources
+                                            for scraped_url in scraped_resources:
+                                                #reverse search url for detailed information
+                                                web_results = search(scraped_url, advanced=True, num_results=WEB_RESULTS)
+                                                #check to see if link is already in the database
+                                                for scraped_result in web_results:
+                                                    #make sure current link is not already in the database
+                                                    if not db.find_url(scraped_result.url) and urlparse(scraped_result.url).netloc not in ignore_urls:
+                                                        #build current data
+                                                        curr_data = build_data(scraped_result, topic, selected_difficulty, False)
+                                                        #break out of current loop if data found
+                                                        if curr_data:
+                                                            #append data to list
+                                                            results_data.append(curr_data)
+                                                            #build resource message
+                                                            resource_message = resource_message + f"{len(results_data)}. {scraped_result.title} : {scraped_result.url}\n"
+                                                            break
+                                                    else:
+                                                        #break out of loop since url is already in database
+                                                        print(f"Link: {scraped_result.url} already exists in database")
+                                                        break
+                                                #break out of loop if all data requirements met
+                                                if len(results_data) >= RESOURCES_NEEDED:
                                                     break
-                                            else:
-                                                #break out of loop since url is already in database
-                                                print(f"Link: {scraped_result.url} already exists in database")
+                                            #break out of loop if all data requirements met
+                                            if len(results_data) >= RESOURCES_NEEDED:
                                                 break
-                                        #break out of loop if all data requirements met
-                                        if len(results_data) >= RESOURCES_NEEDED:
-                                            break
-                                    #break out of loop if all data requirements met
-                                    if len(results_data) >= RESOURCES_NEEDED:
-                                        break
+                    
                     #check to see if we have enough data to push to database
                     if len(results_data) >= RESOURCES_NEEDED:
                         #loop through search results and insert
