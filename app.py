@@ -64,7 +64,7 @@ with gr.Blocks() as demo:
             #save resource url
             data["resource"] = result.url
             #save resource title
-            data["title"] = result.title
+            data["title"] = result.title.replace("'", "")
             #save resource description
             data["description"] = result.description.replace("'", "")
         #save resource topic
