@@ -248,11 +248,9 @@ with gr.Blocks() as demo:
 
         #implement out_json edge case
         out_json = None
-        #keep track of number of trials
-        trial = 0
         #run process until we have an out_json or less than trials
-        while out_json is None and trial < 2:
-            print(f"Current Trial: {trial}")
+        while out_json is None:
+            print("Building out_json!")
             try:
                 #call response
                 response = client.chat.completions.create(
@@ -372,8 +370,7 @@ with gr.Blocks() as demo:
                                 print(f"Failure! Could not process JSON keys")
                 except Exception as e:
                     print(f"Failure! Could not process JSON keys with error", e)
-            trial += 1
-        
+                            
         #handle extracted information
         if out_json:
             #build out file name
