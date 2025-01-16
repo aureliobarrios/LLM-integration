@@ -492,7 +492,7 @@ with gr.Blocks() as demo:
                     #start database session
                     db.start_session()
                     #get search results
-                    search_results = search(out_json[selected_difficulty]["query"], advanced=True, num_results=5)
+                    search_results = search(out_json[selected_difficulty]["query"], advanced=True, num_results=WEB_RESULTS)
                     
                     index = 0
                     #save search results
@@ -524,7 +524,7 @@ with gr.Blocks() as demo:
                         #build search query for reddit
                         reddit_query = f"Reddit {out_json[selected_difficulty]["query"]}"
                         #get reddit search results
-                        reddit_results = search(reddit_query, advanced=True, num_results=5)
+                        reddit_results = search(reddit_query, advanced=True, num_results=WEB_RESULTS)
 
                         index = 0
                         #go through reddit search results
@@ -542,7 +542,7 @@ with gr.Blocks() as demo:
                                     #loop through the scraped resources
                                     for scraped_url in scraped_resources:
                                         #reverse search url for detailed information
-                                        web_results = search(scraped_url, advanced=True, num_results=5)
+                                        web_results = search(scraped_url, advanced=True, num_results=WEB_RESULTS)
                                         #check to see if link is already in the database
                                         for scraped_result in web_results:
                                             #make sure current link is not already in the database
