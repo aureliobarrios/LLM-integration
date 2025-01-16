@@ -125,6 +125,8 @@ with gr.Blocks() as demo:
         INPUT_TOKENS = 0 #prompt tokens
         OUTPUT_TOKENS = 0 #completion tokens
         #load environment variables and build client
+        WEB_RESULTS = int(os.getenv("WEB_RESULTS"))
+        RESOURCES_NEEDED = int(os.getenv("RESOURCES_NEEDED"))
         load_dotenv()
         GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
