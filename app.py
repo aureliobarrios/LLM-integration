@@ -370,7 +370,7 @@ with gr.Blocks() as demo:
                                 print(f"Failure! Could not process JSON keys")
                 except Exception as e:
                     print(f"Failure! Could not process JSON keys with error", e)
-                            
+
         #handle extracted information
         if out_json:
             #build out file name
@@ -471,7 +471,7 @@ with gr.Blocks() as demo:
                             print(f"Video: https://www.youtube.com{result['url_suffix']} already exists in database")
                             continue
                         #check to see if we found necessary resources
-                        if len(results_data) == 5:
+                        if len(results_data) == RESOURCES_NEEDED:
                             break
                     #push resources into database
                     for data in results_data:
@@ -516,11 +516,11 @@ with gr.Blocks() as demo:
                             print(f"Link: {result.url} Already exists in database")
                             continue
                         #check to see if we found our necessary five links
-                        if len(results_data) == 5:
+                        if len(results_data) == RESOURCES_NEEDED:
                             break
                     
                     #check to see if we are missing resources
-                    if len(results_data) < 5:
+                    if len(results_data) < RESOURCES_NEEDED:
                         #build search query for reddit
                         reddit_query = f"Reddit {out_json[selected_difficulty]["query"]}"
                         #get reddit search results
@@ -561,13 +561,13 @@ with gr.Blocks() as demo:
                                                 print(f"Link: {scraped_result.url} already exists in database")
                                                 break
                                         #break out of loop if all data requirements met
-                                        if len(results_data) >= 5:
+                                        if len(results_data) >= RESOURCES_NEEDED:
                                             break
                                     #break out of loop if all data requirements met
-                                    if len(results_data) >= 5:
+                                    if len(results_data) >= RESOURCES_NEEDED:
                                         break
                     #check to see if we have enough data to push to database
-                    if len(results_data) >= 5:
+                    if len(results_data) >= RESOURCES_NEEDED:
                         #loop through search results and insert
                         for data in results_data:
                             #insert current data into database
