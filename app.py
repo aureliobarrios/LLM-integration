@@ -564,7 +564,7 @@ with gr.Blocks() as demo:
                                             #loop through the scraped resources
                                             for scraped_url in scraped_resources:
                                                 #reverse search url for detailed information
-                                                web_results = search(scraped_url, advanced=True, num_results=WEB_RESULTS)
+                                                web_results = search(scraped_url, advanced=True, num_results=3)
                                                 #check to see if link is already in the database
                                                 for scraped_result in web_results:
                                                     #make sure current link is not already in the database
