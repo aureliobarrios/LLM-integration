@@ -2,7 +2,7 @@ from time import sleep
 from bs4 import BeautifulSoup
 from requests import get
 from urllib.parse import unquote #used to decode the url
-from .user_agents import get_useragent
+from user_agents import get_useragent
 
 def _req(term, results, lang, start, proxies, timeout, safe, ssl_verify, region):
     resp = get(
@@ -42,6 +42,8 @@ class SearchResult:
 
 def search(term, num_results=10, lang="en", proxy=None, advanced=False, sleep_interval=0, timeout=5, safe="active", ssl_verify=None, region=None, start_num=0, unique=False):
     """Search the Google search engine"""
+
+    print("hello")
 
     # Proxy setup
     proxies = {"https": proxy, "http": proxy} if proxy and (proxy.startswith("https") or proxy.startswith("http") or proxy.startswith("socks5")) else None
