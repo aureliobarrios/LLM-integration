@@ -129,6 +129,8 @@ with gr.Blocks() as demo:
         WEB_RESULTS = int(os.getenv("WEB_RESULTS"))
         REDDIT_RESULTS = int(os.getenv("REDDIT_RESULTS"))
         RESOURCES_NEEDED = int(os.getenv("RESOURCES_NEEDED"))
+        #set the sleep interval for our google search based on number of web results
+        SLEEP_INTERVAL = 0 if WEB_RESULTS < 100 else 5
         load_dotenv()
         GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
@@ -499,7 +501,7 @@ with gr.Blocks() as demo:
                     #build our results data
                     while results_data is None:
                         #get search results
-                        search_results = list(search(out_json[selected_difficulty]["query"], advanced=True, num_results=WEB_RESULTS))
+                        search_results = list(search(out_json[selected_difficulty]["query"], advanced=True, num_results=WEB_RESULTS, sleep_interval=SLEEP_INTERVAL))
                         #check to see if we have search results
                         if not search_results:
                             #print for debuggin
