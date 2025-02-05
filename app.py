@@ -582,7 +582,7 @@ with gr.Blocks() as demo:
                                                                 #append data to list
                                                                 results_data.append(curr_data)
                                                                 #build resource message
-                                                                print(f"Resource Message: {len(results_data)}. {web_results[0].title} : {scraped_url}\n")
+                                                                resource_message = resource_message + f"{len(results_data)}. {web_results[0].title} : {scraped_url}\n"
                                                 else:
                                                     print(f"Link: {scraped_url} already exists in database")
                                                 #break out of loop if all data requirements met
