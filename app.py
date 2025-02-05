@@ -499,9 +499,9 @@ with gr.Blocks() as demo:
                     #build our results data
                     while results_data is None:
                         #get search results
-                        search_results = search(out_json[selected_difficulty]["query"], advanced=True, num_results=WEB_RESULTS)
+                        search_results = list(search(out_json[selected_difficulty]["query"], advanced=True, num_results=WEB_RESULTS))
                         #check to see if we have search results
-                        if next(search_results, -1) == -1:
+                        if not search_results:
                             #print for debuggin
                             print("Empty Search Results Trying Again!")
                             #sleep for 5 seconds
