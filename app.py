@@ -540,9 +540,9 @@ with gr.Blocks() as demo:
                         #get our reddit search
                         while reddit_index is None:
                             #get reddit search results
-                            reddit_results = search(reddit_query, advanced=True, num_results=WEB_RESULTS)
+                            reddit_results = list(search(reddit_query, advanced=True, num_results=WEB_RESULTS))
                             #check to see if we have search results
-                            if next(reddit_results, -1) == -1:
+                            if not reddit_results:
                                 print("Empty Reddit Results Trying Again!")
                                 #sleep for 5 seconds
                                 time.sleep(5)
