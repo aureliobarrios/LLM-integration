@@ -2,6 +2,7 @@ import os
 import json
 import uuid
 import time
+import random
 import reddit
 import gradio as gr
 from groq import Groq
@@ -126,6 +127,7 @@ with gr.Blocks() as demo:
         OUTPUT_TOKENS = 0 #completion tokens
         #load environment variables and build client
         WEB_RESULTS = int(os.getenv("WEB_RESULTS"))
+        REDDIT_RESULTS = int(os.getenv("REDDIT_RESULTS"))
         RESOURCES_NEEDED = int(os.getenv("RESOURCES_NEEDED"))
         load_dotenv()
         GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -540,7 +542,7 @@ with gr.Blocks() as demo:
                         #get our reddit search
                         while reddit_index is None:
                             #get reddit search results
-                            reddit_results = list(search(reddit_query, advanced=True, num_results=WEB_RESULTS))
+                            reddit_results = list(search(reddit_query, advanced=True, num_results=REDDIT_RESULTS))
                             #check to see if we have search results
                             if not reddit_results:
                                 print("Empty Reddit Results Trying Again!")
@@ -570,7 +572,7 @@ with gr.Blocks() as demo:
                                                     #loop until we find detailed information
                                                     while not web_results:
                                                         #reverse search url for detailed information
-                                                        web_results = list(search(scraped_url, advanced=True, num_results=1))
+                                                        web_results = list(search(scraped_url, advanced=True, num_results=1, sleep_interval=random.randint(1, 3)))
                                                         #if succesfull reverse search
                                                         if web_results:
                                                             #build current data
