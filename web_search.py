@@ -54,12 +54,21 @@ def reverse_search(url):
         }
     )
     resp.raise_for_status()
-
     
+    soup = BeautifulSoup(resp.text, "html.parser")
+
+    try:
+        title = soup.find("title").contents[0]
+    except Exception as e:
+        title = None
+
+    try:
+        description = soup.find('meta', {'name':'description'}).get('content')
+    except Exception as e:
+        description = None
 
 
-
-    return ...
+    return SearchResult(url, title, description)
     
 
 def search(term, num_results=10, lang="en", proxy=None, advanced=False, sleep_interval=0, timeout=5, safe="active", ssl_verify=None, region=None, start_num=0, unique=False):
