@@ -584,14 +584,10 @@ with gr.Blocks() as demo:
                                                     break
                                     if len(results_data) >= RESOURCES_NEEDED:
                                         break
-                    #check to see if we have enough data to push to database
-                    if len(results_data) >= RESOURCES_NEEDED:
-                        #loop through search results and insert
-                        for data in results_data:
-                            #insert current data into database
-                            db.insert_resource(data)
-                    else:
-                        print("Not enough data to commit")
+                    #push our data into the database
+                    for data in results_data:
+                        #insert current resource into database
+                        db.insert_resource(data)
                     #commit changes to database session
                     db.commit_session()
                     #end database session
