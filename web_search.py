@@ -40,6 +40,28 @@ class SearchResult:
         return f"SearchResult(url={self.url}, title={self.title}, description={self.description})"
     
 
+def reverse_search(url):
+    resp = get(
+        url = url,
+        headers = {
+            "User-Agent": get_useragent(),
+            "Accept": "*/*"
+        },
+        timeout = 5,
+        cookies = {
+            "CONSENT": "PENDING+987",
+            "SOCS": "CAESHAgBEhIaAB"
+        }
+    )
+    resp.raise_for_status()
+
+    
+
+
+
+    return ...
+    
+
 def search(term, num_results=10, lang="en", proxy=None, advanced=False, sleep_interval=0, timeout=5, safe="active", ssl_verify=None, region=None, start_num=0, unique=False):
     """Search the Google search engine"""
 
