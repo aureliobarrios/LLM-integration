@@ -569,24 +569,14 @@ with gr.Blocks() as demo:
                                             for scraped_url in scraped_resources:
                                                 #make sure the current url is not already in the database
                                                 if not db.find_url(scraped_url) and urlparse(scraped_url).netloc not in ignore_urls:
-                                                    #build reverse search results for detailed information
-                                                    web_results = []
-                                                    #loop until we find detailed information
-                                                    while not web_results:
-                                                        #reverse search url for detailed information
-                                                        web_results = list(search(scraped_url, advanced=True, num_results=1, sleep_interval=random.randint(1, 3)))
-                                                        #if succesfull reverse search
-                                                        if web_results:
-                                                            #build current data
-                                                            curr_data = build_data(web_results[0], topic, selected_difficulty, False)
-                                                            #break out of current loop if data found
-                                                            if curr_data:
-                                                                #make sure we keep track of the scraped url
-                                                                curr_data["resource"] = scraped_url
-                                                                #append data to list
-                                                                results_data.append(curr_data)
-                                                                #build resource message
-                                                                resource_message = resource_message + f"{len(results_data)}. {web_results[0].title} : {scraped_url}\n"
+                                                    #build current data
+                                                    curr_data = build_data(result, topic, selected_difficulty, False)
+                                                    #make sure we keep track of the scraped url
+                                                    curr_data["resource"] = scraped_url
+                                                    #append data to list
+                                                    results_data.append(curr_data)
+                                                    #build resource message
+                                                    resource_message = resource_message + f"{len(results_data)}. {result.title} : {scraped_url}\n"     
                                                 else:
                                                     print(f"Link: {scraped_url} already exists in database")
                                                 #break out of loop if all data requirements met
