@@ -26,9 +26,9 @@ class KnowledgeBase:
     def start_session(self):
         #establish a connection
         self.conn_details = psycopg2.connect(
-            host = self.db_host,
             database = self.db_name,
             user = self.db_user,
+            host = self.db_host,
             password = self.db_password,
             port = self.db_port
         )
