@@ -11,6 +11,8 @@ astunparse==1.6.3
 attrs==24.2.0
 beautifulsoup4==4.12.3
 blinker==1.9.0
+boto3==1.36.25
+botocore==1.36.25
 certifi==2024.8.30
 charset-normalizer==3.4.0
 click==8.1.7
@@ -50,6 +52,7 @@ itsdangerous==2.2.0
 jedi==0.19.1
 Jinja2==3.1.4
 jiter==0.7.0
+jmespath==1.0.1
 joblib==1.4.2
 jsonpatch==1.33
 jsonpointer==3.0.0
@@ -129,8 +132,10 @@ requests==2.32.3
 requests-toolbelt==1.0.0
 rich==13.9.4
 ruff==0.8.1
+s3transfer==0.11.2
 safehttpx==0.1.1
 safetensors==0.4.5
+scipy==1.15.2
 semantic-version==2.10.0
 setuptools==75.3.0
 shellingham==1.5.4
